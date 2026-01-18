@@ -170,34 +170,48 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md border-t-4 border-primary-600">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-secondary-900 relative overflow-hidden flex items-center justify-center p-3 sm:p-4">
+      {/* Animated background elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      <div
+        className="absolute top-0 right-0 w-96 h-96 bg-secondary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+        style={{ animationDelay: '2s' }}
+      ></div>
+      <div
+        className="absolute bottom-0 left-1/2 w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+        style={{ animationDelay: '4s' }}
+      ></div>
+
+      {/* Content */}
+      <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-10 w-full max-w-md border border-white/20 hover:border-white/40 transition-all duration-300">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-block p-2 sm:p-3 bg-primary-100 rounded-full mb-3 sm:mb-4">
-            <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
+          <div className="inline-block p-3 sm:p-4 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full mb-4 sm:mb-6 shadow-lg">
+            <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-            Join Our Team
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">Register as Dawah Team Member</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Join Our Team</h1>
+          <p className="text-sm sm:text-base text-gray-200">Register as Dawah Team Member</p>
         </div>
 
         {step === 'form' ? (
           // Registration Form
           <form onSubmit={handleRequestOtp} className="space-y-3 sm:space-y-4">
             {/* Error Message */}
-            {error && <div className="alert-error text-sm">{error}</div>}
+            {error && (
+              <div className="alert-error text-sm backdrop-blur-sm bg-red-500/20 border border-red-500/50">
+                {error}
+              </div>
+            )}
 
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+              <label className="block text-sm font-medium text-gray-100 mb-2">Full Name *</label>
               <input
                 type="text"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Enter your full name"
                 disabled={loading}
                 autoFocus
@@ -206,13 +220,13 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
             {/* Username */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Username *</label>
+              <label className="block text-sm font-medium text-gray-100 mb-2">Username *</label>
               <input
                 type="text"
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Choose a username (3+ characters)"
                 disabled={loading}
               />
@@ -220,13 +234,13 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <label className="block text-sm font-medium text-gray-100 mb-2">Email *</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Enter your email"
                 disabled={loading}
               />
@@ -234,13 +248,13 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+              <label className="block text-sm font-medium text-gray-100 mb-2">Password *</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Minimum 8 characters (A-Z, a-z, 0-9)"
                 disabled={loading}
               />
@@ -248,7 +262,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Confirm Password *
               </label>
               <input
@@ -256,7 +270,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Re-enter your password"
                 disabled={loading}
               />
@@ -264,7 +278,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
             {/* Registration Code */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Registration Code *
               </label>
               <input
@@ -272,7 +286,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
                 name="registrationCode"
                 value={formData.registrationCode}
                 onChange={handleChange}
-                className="input-field text-base sm:text-base"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
                 placeholder="Enter registration code"
                 disabled={loading}
               />
@@ -282,7 +296,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full mt-4 sm:mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-4 sm:mt-6 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {loading ? 'Sending OTP...' : 'Continue (Send OTP)'}
             </button>
@@ -304,26 +318,30 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
             <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Mail className="w-5 h-5 text-primary-600" />
-                <p className="text-sm font-medium text-primary-900">OTP Sent Successfully</p>
+                <p className="text-sm font-medium text-primary-200">OTP Sent Successfully</p>
               </div>
-              <p className="text-sm text-primary-800">
+              <p className="text-sm text-gray-200">
                 We've sent a 6-digit code to <strong>{email}</strong>
               </p>
             </div>
 
             {/* Error Message */}
-            {error && <div className="alert-error text-sm">{error}</div>}
+            {error && (
+              <div className="alert-error text-sm backdrop-blur-sm bg-red-500/20 border border-red-500/50">
+                {error}
+              </div>
+            )}
 
             {/* OTP Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Enter OTP (6 digits) *
               </label>
               <input
                 type="text"
                 value={otp}
                 onChange={handleOtpChange}
-                className="input-field text-center text-2xl tracking-widest font-bold"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-center text-2xl tracking-widest font-bold"
                 placeholder="000000"
                 maxLength="6"
                 disabled={loading}
@@ -332,7 +350,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
             </div>
 
             {/* Timer Info */}
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-gray-300">
               OTP expires in 10 minutes. Check your spam folder if you don't see the email.
             </p>
 
@@ -340,7 +358,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {loading ? 'Verifying...' : 'Verify OTP'}
             </button>
@@ -350,7 +368,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
               type="button"
               onClick={handleResendOtp}
               disabled={loading}
-              className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+              className="w-full text-center text-sm text-primary-300 hover:text-primary-200 font-medium disabled:opacity-50 transition-colors"
             >
               Didn't receive OTP? Resend
             </button>
@@ -363,7 +381,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
                 setOtp('')
                 setError('')
               }}
-              className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-700 font-medium mt-3"
+              className="w-full flex items-center justify-center gap-2 text-primary-300 hover:text-primary-200 font-medium mt-3 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Registration

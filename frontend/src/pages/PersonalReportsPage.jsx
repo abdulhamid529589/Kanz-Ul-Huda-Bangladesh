@@ -20,199 +20,117 @@ const PersonalReportsPage = () => {
 
     setLoading(true)
     try {
-      const [membersRes, submissionsRes] = await Promise.all([
-        apiCall('/members?limit=1000', {}, token),
-        apiCall('/submissions?limit=1000', {}, token),
-      ])
+      // Fetch the report based on type
+      const endpoint =
+        reportType === 'weekly'
+          ? `/personal-reports/weekly?startDate=${selectedDate}`
+          : `/personal-reports/monthly?month=${new Date(selectedDate).getMonth() + 1}&year=${new Date(selectedDate).getFullYear()}`
 
-      if (membersRes.ok) setMembers(membersRes.data.data || [])
-      if (submissionsRes.ok) setSubmissions(submissionsRes.data.data || [])
+      const reportRes = await apiCall(endpoint, {}, token)
+
+      if (reportRes.ok && reportRes.data.data.report) {
+        setReportData(reportRes.data.data.report)
+      } else {
+        setReportData(null)
+      }
     } catch (error) {
       console.error('Error fetching report data:', error)
+      setReportData(null)
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, reportType, selectedDate])
 
   useEffect(() => {
     fetchReportData()
   }, [fetchReportData])
 
-  // Generate weekly report (only for current user's submissions on members they created)
-  // Week: Saturday to Friday
-  const generateWeeklyReport = useCallback(() => {
-    const selectedDateObj = new Date(selectedDate)
-    const dayOfWeek = selectedDateObj.getDay() // 0=Sunday, 1=Monday, ..., 6=Saturday
-
-    // Calculate Saturday (start of week)
-    const firstDay = new Date(selectedDateObj)
-    const daysToSaturday = (dayOfWeek + 1) % 7 // Days to go back to Saturday
-    firstDay.setDate(selectedDateObj.getDate() - daysToSaturday)
-
-    // Calculate Friday (end of week)
-    const lastDay = new Date(firstDay)
-    lastDay.setDate(firstDay.getDate() + 6) // Friday is 6 days after Saturday
-
-    // Get IDs of members created by current user
-    const userCreatedMemberIds = new Set(
-      members
-        .filter((m) => m.createdBy?._id === user?._id || m.createdBy === user?._id)
-        .map((m) => m._id),
-    )
-
-    // Filter submissions: only those created by current user AND on members they created
-    const weekSubmissions = submissions.filter((sub) => {
-      const subDate = new Date(sub.submissionDateTime || sub.createdAt)
-      const isInDateRange = subDate >= firstDay && subDate <= lastDay
-      const isCreatedByUser = sub.createdBy?._id === user?._id || sub.createdBy === user?._id
-      const isMemberCreatedByUser = userCreatedMemberIds.has(sub.member?._id || sub.member)
-
-      return isInDateRange && isCreatedByUser && isMemberCreatedByUser
-    })
-
-    const totalDurood = weekSubmissions.reduce((sum, sub) => sum + (sub.duroodCount || 0), 0)
-    const uniqueMembers = new Set(weekSubmissions.map((sub) => sub.member?._id || sub.member)).size
-
-    return {
-      type: 'Weekly',
-      period: `${firstDay.toLocaleDateString()} (Sat) - ${lastDay.toLocaleDateString()} (Fri)`,
-      startDate: firstDay,
-      endDate: lastDay,
-      totalDurood,
-      submissions: weekSubmissions.length,
-      uniqueMembers,
-      avgPerSubmission:
-        weekSubmissions.length > 0 ? (totalDurood / weekSubmissions.length).toFixed(0) : 0,
-      details: weekSubmissions,
-    }
-  }, [submissions, selectedDate, members, user])
-
-  // Generate monthly report (only for current user's submissions on members they created)
-  const generateMonthlyReport = useCallback(() => {
-    const selectedDateObj = new Date(selectedDate)
-    const year = selectedDateObj.getFullYear()
-    const month = selectedDateObj.getMonth()
-
-    // Get IDs of members created by current user
-    const userCreatedMemberIds = new Set(
-      members
-        .filter((m) => m.createdBy?._id === user?._id || m.createdBy === user?._id)
-        .map((m) => m._id),
-    )
-
-    // Filter submissions: only those created by current user AND on members they created
-    const monthSubmissions = submissions.filter((sub) => {
-      const subDate = new Date(sub.submissionDateTime || sub.createdAt)
-      const isInDateRange = subDate.getFullYear() === year && subDate.getMonth() === month
-      const isCreatedByUser = sub.createdBy?._id === user?._id || sub.createdBy === user?._id
-      const isMemberCreatedByUser = userCreatedMemberIds.has(sub.member?._id || sub.member)
-
-      return isInDateRange && isCreatedByUser && isMemberCreatedByUser
-    })
-
-    const totalDurood = monthSubmissions.reduce((sum, sub) => sum + (sub.duroodCount || 0), 0)
-    const uniqueMembers = new Set(monthSubmissions.map((sub) => sub.member?._id || sub.member)).size
-
-    const monthName = new Date(year, month, 1).toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric',
-    })
-
-    return {
-      type: 'Monthly',
-      period: monthName,
-      startDate: new Date(year, month, 1),
-      endDate: new Date(year, month + 1, 0),
-      totalDurood,
-      submissions: monthSubmissions.length,
-      uniqueMembers,
-      avgPerSubmission:
-        monthSubmissions.length > 0 ? (totalDurood / monthSubmissions.length).toFixed(0) : 0,
-      details: monthSubmissions,
-    }
-  }, [submissions, selectedDate, members, user])
-
-  // Generate report based on type
-  const handleGenerateReport = useCallback(() => {
-    if (reportType === 'weekly') {
-      setReportData(generateWeeklyReport())
-    } else {
-      setReportData(generateMonthlyReport())
-    }
-  }, [reportType, generateWeeklyReport, generateMonthlyReport])
-
-  // Export to CSV
-  const handleExportCSV = () => {
+  // Export to CSV via API
+  const handleExportCSV = async () => {
     if (!reportData) return
 
-    const headers = ['Member Name', 'Durood Count', 'Week/Date', 'Notes']
-    const rows = reportData.details.map((sub) => [
-      sub.member?.fullName || 'Unknown',
-      sub.duroodCount,
-      new Date(sub.submissionDateTime || sub.createdAt).toLocaleDateString(),
-      sub.notes || '',
-    ])
+    try {
+      const params = new URLSearchParams({
+        format: 'csv',
+        reportType: reportData.type.toLowerCase(),
+      })
 
-    const csvContent = [
-      [`${reportData.type} Report - ${reportData.period}`],
-      [`Generated by: ${user?.fullName}`],
-      [`Generated on: ${new Date().toLocaleString()}`],
-      [],
-      headers,
-      ...rows,
-      [],
-      ['Summary'],
-      ['Total Durood', reportData.totalDurood],
-      ['Total Submissions', reportData.submissions],
-      ['Unique Members', reportData.uniqueMembers],
-      ['Average per Submission', reportData.avgPerSubmission],
-    ]
-      .map((row) => row.map((cell) => `"${cell}"`).join(','))
-      .join('\n')
+      if (reportData.type === 'Weekly') {
+        params.append('startDate', selectedDate)
+      } else {
+        const date = new Date(selectedDate)
+        params.append('month', date.getMonth() + 1)
+        params.append('year', date.getFullYear())
+      }
 
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${reportData.type}-Report-${new Date().toISOString().split('T')[0]}.csv`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/personal-reports/export?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      if (!response.ok) {
+        console.error('Failed to export CSV')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `personal-report-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+    }
   }
 
-  // Export to JSON
-  const handleExportJSON = () => {
+  // Export to JSON via API
+  const handleExportJSON = async () => {
     if (!reportData) return
 
-    const exportData = {
-      reportType: reportData.type,
-      period: reportData.period,
-      generatedBy: user?.fullName,
-      generatedAt: new Date().toISOString(),
-      summary: {
-        totalDurood: reportData.totalDurood,
-        submissions: reportData.submissions,
-        uniqueMembers: reportData.uniqueMembers,
-        avgPerSubmission: reportData.avgPerSubmission,
-      },
-      submissions: reportData.details.map((sub) => ({
-        memberName: sub.member?.fullName || 'Unknown',
-        duroodCount: sub.duroodCount,
-        date: new Date(sub.submissionDateTime || sub.createdAt).toISOString(),
-        notes: sub.notes || '',
-      })),
-    }
+    try {
+      const params = new URLSearchParams({
+        format: 'json',
+        reportType: reportData.type.toLowerCase(),
+      })
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${reportData.type}-Report-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+      if (reportData.type === 'Weekly') {
+        params.append('startDate', selectedDate)
+      } else {
+        const date = new Date(selectedDate)
+        params.append('month', date.getMonth() + 1)
+        params.append('year', date.getFullYear())
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/personal-reports/export?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      if (!response.ok) {
+        console.error('Failed to export JSON')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `personal-report-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting JSON:', error)
+    }
   }
 
   // Export to PDF
@@ -263,9 +181,9 @@ const PersonalReportsPage = () => {
                 .map(
                   (sub) => `
                 <tr>
-                  <td>${sub.member?.fullName || 'Unknown'}</td>
+                  <td>${sub.memberName || 'Unknown'}</td>
                   <td>${sub.duroodCount}</td>
-                  <td>${new Date(sub.submissionDateTime || sub.createdAt).toLocaleDateString()}</td>
+                  <td>${new Date(sub.date).toLocaleDateString()}</td>
                   <td>${sub.notes || ''}</td>
                 </tr>
               `,
@@ -375,10 +293,11 @@ const PersonalReportsPage = () => {
             {/* Generate Button */}
             <div className="flex items-end">
               <button
-                onClick={handleGenerateReport}
+                onClick={fetchReportData}
                 className="w-full px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium"
+                disabled={loading}
               >
-                Generate Report
+                {loading ? 'Loading...' : 'Generate Report'}
               </button>
             </div>
           </div>
@@ -541,15 +460,13 @@ const PersonalReportsPage = () => {
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
-                          {submission.member?.fullName || 'Unknown'}
+                          {submission.memberName || 'Unknown'}
                         </td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">
                           {submission.duroodCount}
                         </td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">
-                          {new Date(
-                            submission.submissionDateTime || submission.createdAt,
-                          ).toLocaleDateString()}
+                          {new Date(submission.date).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm max-w-xs truncate">
                           {submission.notes || '-'}

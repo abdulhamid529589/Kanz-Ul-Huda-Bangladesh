@@ -29,7 +29,7 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
     }
   }, [isDesktop])
 
-  const navigation = [
+  const commonNavigation = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'members', name: 'Members', icon: Users },
     { id: 'submissions', name: 'Submissions', icon: Send },
@@ -39,6 +39,17 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
     { id: 'profiles', name: 'Member Profiles', icon: UserCircle },
     { id: 'settings', name: 'Settings', icon: Settings },
   ]
+
+  const adminNavigation = [
+    { id: 'admin-users', name: 'Admin: Users', icon: Users },
+    { id: 'admin-members', name: 'Admin: Members', icon: Users },
+    { id: 'admin-settings', name: 'Admin: Settings', icon: Settings },
+  ]
+
+  const navigation =
+    user?.role === 'admin'
+      ? [...commonNavigation, { id: 'divider', name: '', icon: null }, ...adminNavigation]
+      : commonNavigation
 
   const handleNavigation = (pageId) => {
     setCurrentPage(pageId)
@@ -59,7 +70,11 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
               whileTap={{ scale: 0.95 }}
             >
               <motion.div animate={{ rotate: sidebarOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
-                {sidebarOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {sidebarOpen ? (
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                ) : (
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                )}
               </motion.div>
             </motion.button>
             <motion.h1
@@ -114,30 +129,42 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
               className="fixed lg:sticky top-16 left-0 w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 min-h-[calc(100vh-4rem)] p-3 sm:p-4 z-20 lg:translate-x-0"
             >
               <nav className="space-y-2">
-                {navigation.map((item, index) => (
-                  <motion.button
-                    key={item.id}
-                    onClick={() => handleNavigation(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      currentPage === item.id
-                        ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium shadow-sm'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <motion.div
-                      animate={currentPage === item.id ? { scale: 1.2 } : { scale: 1 }}
-                      transition={{ duration: 0.2 }}
+                {navigation.map((item, index) => {
+                  if (item.id === 'divider') {
+                    return (
+                      <div key={index} className="my-4 pt-2 border-t dark:border-gray-700">
+                        <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                          Admin Panel
+                        </p>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <motion.button
+                      key={item.id}
+                      onClick={() => handleNavigation(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                        currentPage === item.id
+                          ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium shadow-sm'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <item.icon className="w-5 h-5" />
-                    </motion.div>
-                    {item.name}
-                  </motion.button>
-                ))}
+                      <motion.div
+                        animate={currentPage === item.id ? { scale: 1.2 } : { scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <item.icon className="w-5 h-5" />
+                      </motion.div>
+                      {item.name}
+                    </motion.button>
+                  )
+                })}
               </nav>
 
               {/* Sidebar Footer */}

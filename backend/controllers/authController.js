@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 import OTPVerification from '../models/OTPVerification.js'
 import LoginOTP from '../models/LoginOTP.js'
+import PasswordReset from '../models/PasswordReset.js'
 import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js'
 import {
   asyncHandler,
@@ -10,7 +11,12 @@ import {
   sendErrorResponse,
 } from '../utils/errorHandler.js'
 import logger from '../utils/logger.js'
-import { generateOTP, sendOTPEmail, sendWelcomeEmail } from '../utils/emailService.js'
+import {
+  generateOTP,
+  sendOTPEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+} from '../utils/emailService.js'
 
 /**
  * @desc    Request registration - Step 1: Send OTP
@@ -573,4 +579,136 @@ export const loginResendOTP = asyncHandler(async (req, res) => {
   logger.info('Login OTP resent', { username: user.username })
 
   sendSuccessResponse(res, 200, 'New OTP sent to your email. Valid for 10 minutes.')
+})
+
+/**
+ * @desc    Request password reset - Step 1: Send reset link
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    throw new AppError('Email is required', 400)
+  }
+
+  // Check if user exists
+  const user = await User.findOne({ email: email.toLowerCase() })
+
+  if (!user) {
+    // For security, we still return success even if user doesn't exist
+    // This prevents email enumeration attacks
+    logger.warn('Password reset requested for non-existent email', { email: email.toLowerCase() })
+    sendSuccessResponse(
+      res,
+      200,
+      'If an account exists with this email, you will receive a password reset link.',
+    )
+    return
+  }
+
+  // Generate reset token
+  const resetToken = await PasswordReset.generateResetToken(email)
+
+  // Create reset link
+  const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`
+
+  // Send reset email
+  try {
+    await sendPasswordResetEmail(email, resetLink, user.fullName)
+  } catch (error) {
+    // Delete the reset record if email sending fails
+    await PasswordReset.deleteOne({ email: email.toLowerCase() })
+    throw new AppError('Failed to send password reset email. Please try again.', 500)
+  }
+
+  logger.info('Password reset email sent', { email: user.email })
+
+  sendSuccessResponse(
+    res,
+    200,
+    'If an account exists with this email, you will receive a password reset link.',
+  )
+})
+
+/**
+ * @desc    Verify reset token
+ * @route   POST /api/auth/verify-reset-token
+ * @access  Public
+ */
+export const verifyResetToken = asyncHandler(async (req, res) => {
+  const { email, token } = req.body
+
+  if (!email || !token) {
+    throw new AppError('Email and token are required', 400)
+  }
+
+  // Verify reset token
+  const verification = await PasswordReset.verifyResetToken(email, token)
+
+  if (!verification.valid) {
+    throw new AppError(verification.message, 400)
+  }
+
+  sendSuccessResponse(res, 200, 'Reset token is valid. You can now reset your password.', {
+    email,
+  })
+})
+
+/**
+ * @desc    Reset password with valid token - Step 2
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, token, newPassword, confirmPassword } = req.body
+
+  if (!email || !token || !newPassword || !confirmPassword) {
+    throw new AppError('Email, token, and new password are required', 400)
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new AppError('Passwords do not match', 400)
+  }
+
+  if (newPassword.length < 8) {
+    throw new AppError('Password must be at least 8 characters long', 400)
+  }
+
+  // Verify reset token
+  const verification = await PasswordReset.verifyResetToken(email, token)
+
+  if (!verification.valid) {
+    throw new AppError(verification.message, 400)
+  }
+
+  // Find user
+  const user = await User.findOne({ email: email.toLowerCase() })
+
+  if (!user) {
+    throw new AppError('User not found', 404)
+  }
+
+  // Update attempts
+  const resetRecord = verification.resetRecord
+  resetRecord.attempts += 1
+  await resetRecord.save()
+
+  // Update password
+  user.password = newPassword
+  await user.save()
+
+  // Mark reset token as used
+  resetRecord.isUsed = true
+  resetRecord.usedAt = new Date()
+  await resetRecord.save()
+
+  logger.info('User password reset successfully', { username: user.username, email: user.email })
+
+  sendSuccessResponse(
+    res,
+    200,
+    'Your password has been reset successfully. You can now login with your new password.',
+  )
 })

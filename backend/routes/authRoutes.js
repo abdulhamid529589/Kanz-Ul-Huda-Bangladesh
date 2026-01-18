@@ -11,6 +11,9 @@ import {
   getMe,
   logout,
   changePassword,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
 } from '../controllers/authController.js'
 import {
   validateRegister,
@@ -51,6 +54,16 @@ const otpLimiter = rateLimit({
   keyGenerator: (req, res) => req.body.email || req.ip,
 })
 
+// Rate limiter for password reset requests
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Only 3 reset requests per 15 minutes per email
+  message: { success: false, message: 'Too many password reset requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req, res) => req.body.email || req.ip,
+})
+
 // Public routes
 // 2FA Registration Flow
 router.post('/request-otp', otpLimiter, validateOTPRequest, requestOTP)
@@ -62,6 +75,11 @@ router.post('/register', registerLimiter, validateRegister, register)
 
 // Legacy login (backward compatibility - password only, no 2FA)
 router.post('/login', loginLimiter, validateLogin, login)
+
+// Password reset routes
+router.post('/forgot-password', resetLimiter, forgotPassword)
+router.post('/verify-reset-token', verifyResetToken)
+router.post('/reset-password', resetPassword)
 
 // Refresh token endpoint
 router.post('/refresh-token', refreshToken)

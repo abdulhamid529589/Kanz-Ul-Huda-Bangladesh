@@ -23,6 +23,10 @@ import memberRoutes from './routes/memberRoutes.js'
 import submissionRoutes from './routes/submissionRoutes.js'
 import statsRoutes from './routes/statsRoutes.js'
 import reportRoutes from './routes/reportRoutes.js'
+import personalReportRoutes from './routes/personalReportRoutes.js'
+import adminUserRoutes from './routes/adminUserRoutes.js'
+import adminMemberRoutes from './routes/adminMemberRoutes.js'
+import adminSettingsRoutes from './routes/adminSettingsRoutes.js'
 
 const app = express()
 
@@ -67,6 +71,10 @@ app.use('/api/members', generalLimiter)
 app.use('/api/submissions', generalLimiter)
 app.use('/api/stats', generalLimiter)
 app.use('/api/reports', generalLimiter)
+app.use('/api/personal-reports', generalLimiter)
+app.use('/api/admin/users', generalLimiter)
+app.use('/api/admin/members', generalLimiter)
+app.use('/api/admin/settings', generalLimiter)
 
 // Database Connection
 const MONGO_URI = process.env.MONGODB_URI || `mongodb://localhost:27017/${DB_NAME}`
@@ -90,6 +98,12 @@ app.use('/api/members', memberRoutes)
 app.use('/api/submissions', submissionRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/reports', reportRoutes)
+app.use('/api/personal-reports', personalReportRoutes)
+
+// Admin Routes
+app.use('/api/admin/users', adminUserRoutes)
+app.use('/api/admin/members', adminMemberRoutes)
+app.use('/api/admin/settings', adminSettingsRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {

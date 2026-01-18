@@ -19,17 +19,18 @@ const ReportsPage = () => {
 
     setLoading(true)
     try {
-      const [statsRes, submissionsRes, membersRes] = await Promise.all([
-        apiCall('/stats/dashboard', {}, token),
-        apiCall('/submissions?limit=500', {}, token),
-        apiCall('/members?limit=1000', {}, token),
+      const [overviewRes, submissionsRes, memberStatsRes] = await Promise.all([
+        apiCall('/reports/overview', {}, token),
+        apiCall('/reports/submissions?limit=500', {}, token),
+        apiCall('/reports/member-stats', {}, token),
       ])
 
-      if (statsRes.ok) setStats(statsRes.data.data)
-      if (submissionsRes.ok) setSubmissions(submissionsRes.data.data || [])
-      if (membersRes.ok) setMembers(membersRes.data.data || [])
+      if (overviewRes.ok) setStats(overviewRes.data.data)
+      if (submissionsRes.ok) setSubmissions(submissionsRes.data.data?.submissions || [])
+      if (memberStatsRes.ok) setMembers(memberStatsRes.data.data?.stats || [])
     } catch (error) {
       console.error('Error fetching data:', error)
+      showError('Failed to load report data')
     } finally {
       setLoading(false)
     }
@@ -39,73 +40,70 @@ const ReportsPage = () => {
     fetchData()
   }, [fetchData])
 
-  // Export to CSV
-  const handleExportCSV = () => {
+  // Export to CSV via API
+  const handleExportCSV = async () => {
     if (submissions.length === 0) {
       showError('No data to export')
       return
     }
 
-    const headers = [
-      'Member Name',
-      'Phone',
-      'Country',
-      'Durood Count',
-      'Week Start',
-      'Week End',
-      'Notes',
-    ]
-    const rows = submissions.map((sub) => [
-      sub.member?.fullName || '',
-      sub.member?.phoneNumber || '',
-      sub.member?.country || '',
-      sub.duroodCount,
-      new Date(sub.weekStartDate).toLocaleDateString(),
-      new Date(sub.weekEndDate).toLocaleDateString(),
-      sub.notes || '',
-    ])
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/reports/export?format=csv`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+      if (!response.ok) {
+        showError('Failed to export CSV')
+        return
+      }
 
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `submissions-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `submissions-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      showSuccess('CSV exported successfully')
+    } catch (error) {
+      showError('Error exporting CSV')
+      console.error(error)
+    }
   }
 
-  // Export to JSON
-  const handleExportJSON = () => {
+  // Export to JSON via API
+  const handleExportJSON = async () => {
     if (submissions.length === 0) {
       showError('No data to export')
       return
     }
 
-    const data = {
-      exportDate: new Date().toISOString(),
-      totalSubmissions: submissions.length,
-      submissions: submissions.map((sub) => ({
-        member: sub.member?.fullName,
-        phone: sub.member?.phoneNumber,
-        duroodCount: sub.duroodCount,
-        week: {
-          start: sub.weekStartDate,
-          end: sub.weekEndDate,
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/reports/export?format=json`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        notes: sub.notes,
-      })),
-    }
+      })
 
-    const json = JSON.stringify(data, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `submissions-${new Date().toISOString().split('T')[0]}.json`
-    a.click()
-    window.URL.revokeObjectURL(url)
+      if (!response.ok) {
+        showError('Failed to export JSON')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `submissions-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      showSuccess('JSON exported successfully')
+    } catch (error) {
+      showError('Error exporting JSON')
+      console.error(error)
+    }
   }
 
   // Export to PDF
@@ -190,19 +188,8 @@ const ReportsPage = () => {
     html2pdf().set(opt).from(htmlContent).save()
   }
 
-  // Calculate member stats
+  // Use memberStats from API (members array contains the ranked stats)
   const memberStats = members
-    .map((member) => {
-      const memberSubs = submissions.filter((sub) => sub.member?._id === member._id)
-      const totalDurood = memberSubs.reduce((sum, sub) => sum + sub.duroodCount, 0)
-      return {
-        name: member.fullName,
-        duroodCount: totalDurood,
-        submissions: memberSubs.length,
-        lastSubmission: memberSubs.length > 0 ? memberSubs[0].submissionDateTime : null,
-      }
-    })
-    .sort((a, b) => b.duroodCount - a.duroodCount)
 
   if (loading) {
     return (
@@ -291,7 +278,7 @@ const ReportsPage = () => {
                 <div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Members</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(stats.totalActiveMembers)}
+                    {formatNumber(stats.members?.total || 0)}
                   </p>
                 </div>
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
@@ -303,9 +290,11 @@ const ReportsPage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Submissions</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                    Submissions This Week
+                  </p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(submissions.length)}
+                    {formatNumber(stats.currentWeek?.submissions || 0)}
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
@@ -317,9 +306,9 @@ const ReportsPage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">All Time Total</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Durood</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(stats.allTimeTotal)}
+                    {formatNumber(stats.currentWeek?.total || 0)}
                   </p>
                 </div>
                 <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
@@ -331,15 +320,9 @@ const ReportsPage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                    Average per Member
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Progress</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(
-                      stats.totalActiveMembers > 0
-                        ? Math.round(stats.allTimeTotal / stats.totalActiveMembers)
-                        : 0,
-                    )}
+                    {stats.members?.progressPercentage || 0}%
                   </p>
                 </div>
                 <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
@@ -353,10 +336,10 @@ const ReportsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                This Month
+                This Week
               </h3>
               <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.monthTotal)}
+                {formatNumber(stats.currentWeek?.total || 0)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 {
@@ -372,30 +355,25 @@ const ReportsPage = () => {
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                This Year
+                Previous Week
               </h3>
               <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.yearTotal)}
+                {formatNumber(stats.previousWeek?.total || 0)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {
-                  submissions.filter(
-                    (sub) => new Date(sub.weekStartDate).getFullYear() === new Date().getFullYear(),
-                  ).length
-                }{' '}
-                submissions
+                {stats.previousWeek?.submissions || 0} submissions
               </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Current Week
+                This Month
               </h3>
               <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.currentWeek.total)}
+                {formatNumber(stats.month?.total || 0)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {stats.currentWeek.submissionsCount} / {stats.totalActiveMembers} members submitted
+                {stats.month?.submissions || 0} submissions
               </p>
             </div>
           </div>
@@ -445,7 +423,7 @@ const ReportsPage = () => {
                     >
                       <td className="px-6 py-4">
                         <span className="flex w-8 h-8 bg-primary-600 dark:bg-primary-700 text-white rounded-full items-center justify-center font-bold">
-                          {index + 1}
+                          {member.rank || index + 1}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
@@ -453,15 +431,15 @@ const ReportsPage = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-block px-3 py-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 rounded-full font-semibold">
-                          {formatNumber(member.duroodCount)}
+                          {formatNumber(member.totalDurood)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                        {member.submissions}
+                        {member.submissionCount}
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                        {member.submissions > 0
-                          ? formatNumber(Math.round(member.duroodCount / member.submissions))
+                        {member.submissionCount > 0
+                          ? formatNumber(Math.round(member.totalDurood / member.submissionCount))
                           : 0}
                       </td>
                     </tr>
