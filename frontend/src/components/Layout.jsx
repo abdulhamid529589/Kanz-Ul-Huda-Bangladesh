@@ -71,9 +71,9 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
             >
               <motion.div animate={{ rotate: sidebarOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
                 {sidebarOpen ? (
-                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 ) : (
-                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 )}
               </motion.div>
             </motion.button>
