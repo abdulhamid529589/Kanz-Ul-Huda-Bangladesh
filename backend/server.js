@@ -6,6 +6,7 @@ import compression from 'compression'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
+import { DB_NAME } from './constants.js'
 
 // Load environment variables
 dotenv.config()
@@ -64,15 +65,17 @@ app.use('/api/stats', generalLimiter)
 app.use('/api/reports', generalLimiter)
 
 // Database Connection
+const MONGO_URI = process.env.MONGODB_URI || `mongodb://localhost:27017/${DB_NAME}`
+
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(MONGO_URI)
   .then(() => {
     logger.info('MongoDB Connected Successfully')
     console.log('✅ MongoDB Connected Successfully')
   })
   .catch((err) => {
     logger.error('MongoDB Connection Error', err)
-    console.error('❌ MongoDB Connection Error:', err)
+    console.error('❌ MongoDB Connection Error:', err.message)
     process.exit(1)
   })
 
@@ -107,10 +110,15 @@ app.use(globalErrorHandler)
 // Start Server
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
-  const weekStartDay =
-    ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
-      process.env.WEEK_START_DAY || 4
-    ]
+  const weekStartDay = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ][process.env.WEEK_START_DAY || 6]
 
   logger.info('Server started', { port: PORT, env: process.env.NODE_ENV, weekStartDay })
   console.log(`🚀 Server running on port ${PORT}`)

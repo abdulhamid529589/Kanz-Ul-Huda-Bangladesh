@@ -152,9 +152,12 @@ const RegisterPage = ({ onBackToLogin }) => {
               value={formData.password}
               onChange={handleChange}
               className="input-field text-base sm:text-base"
-              placeholder="Min 8 characters"
+              placeholder="Min 8 characters with uppercase, lowercase, number"
               disabled={loading}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number
+            </p>
           </div>
 
           {/* Confirm Password */}

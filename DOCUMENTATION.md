@@ -244,7 +244,7 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 
 # Week Configuration
-WEEK_START_DAY=4  # 0=Sunday, 1=Monday, ..., 4=Thursday, 5=Friday, 6=Saturday
+WEEK_START_DAY=6  # 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
 ```
 
 ### Frontend Environment Variables
@@ -466,14 +466,12 @@ GET    /api/health              - API health status (public)
 ### Current Features (v1.0.0)
 
 1. **User Management**
-
    - User registration and login
    - Role-based access control (Admin/Collector)
    - Password change functionality
    - User session management
 
 2. **Member Management**
-
    - Create, read, update, delete members
    - Search members by name or phone
    - Filter by status and country
@@ -481,7 +479,6 @@ GET    /api/health              - API health status (public)
    - View lifetime Durood total
 
 3. **Submission Management**
-
    - Create weekly submissions
    - Update existing submissions
    - Delete submissions
@@ -489,7 +486,6 @@ GET    /api/health              - API health status (public)
    - Prevent duplicate submissions per week
 
 4. **Statistics & Analytics**
-
    - Dashboard overview
    - Weekly statistics
    - Monthly and yearly totals
@@ -497,7 +493,6 @@ GET    /api/health              - API health status (public)
    - Progress percentage calculation
 
 5. **Reports**
-
    - Export data to CSV
    - Export data to PDF
    - Custom report generation

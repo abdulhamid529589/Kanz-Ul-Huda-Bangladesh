@@ -32,11 +32,15 @@ export const validateRegister = [
     .withMessage('Password is required')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter (A-Z)')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter (a-z)')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain at least one number (0-9)'),
   body('fullName').trim().notEmpty().withMessage('Full name is required'),
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
-  body('registrationCode').notEmpty().withMessage('Registration code is required'),
+  body('registrationCode').trim().notEmpty().withMessage('Registration code is required'),
   validate,
 ]
 
@@ -63,7 +67,10 @@ export const validateMember = [
   body('email').optional().isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('country').trim().notEmpty().withMessage('Country is required'),
   body('city').optional().trim(),
-  body('status').optional().isIn(['active', 'inactive']).withMessage('Status must be active or inactive'),
+  body('status')
+    .optional()
+    .isIn(['active', 'inactive'])
+    .withMessage('Status must be active or inactive'),
   validate,
 ]
 
@@ -71,7 +78,11 @@ export const validateMember = [
  * Submission validation rules
  */
 export const validateSubmission = [
-  body('memberId').notEmpty().withMessage('Member ID is required').isMongoId().withMessage('Invalid member ID'),
+  body('memberId')
+    .notEmpty()
+    .withMessage('Member ID is required')
+    .isMongoId()
+    .withMessage('Invalid member ID'),
   body('duroodCount')
     .notEmpty()
     .withMessage('Durood count is required')
@@ -85,10 +96,7 @@ export const validateSubmission = [
 /**
  * ID parameter validation
  */
-export const validateId = [
-  param('id').isMongoId().withMessage('Invalid ID format'),
-  validate,
-]
+export const validateId = [param('id').isMongoId().withMessage('Invalid ID format'), validate]
 
 /**
  * Password change validation
@@ -101,6 +109,8 @@ export const validatePasswordChange = [
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .withMessage(
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+    ),
   validate,
 ]

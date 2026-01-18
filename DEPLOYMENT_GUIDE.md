@@ -1,119 +1,173 @@
 # 🚀 Complete Deployment Guide - Kanz ul Huda
 
-This guide covers deploying your backend to Render/Vercel and frontend to Netlify.
+**Backend**: Render.com | **Frontend**: Vercel | **Database**: MongoDB Atlas
+
+This guide provides step-by-step instructions for deploying your application with best practices for production.
 
 ---
 
 ## 📋 Prerequisites
 
-- GitHub account (for connecting repos)
-- MongoDB Atlas account (for cloud database)
-- Render.com or Vercel account (for backend)
-- Netlify account (for frontend)
+- GitHub account (with your repository)
+- MongoDB Atlas account (free tier available)
+- Render.com account (free tier available)
+- Vercel account (free tier available)
+- Node.js 16+ installed locally (for testing)
 
 ---
 
-## 🗄️ Part 1: MongoDB Atlas Setup (Required for Both)
+## 🗄️ Step 1: MongoDB Atlas Setup (Database)
 
-### 1. Create MongoDB Atlas Cluster
+### Create & Configure MongoDB Cluster
 
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Sign up or login
-3. Create a new project
-4. Create a cluster (free tier M0 is fine)
-5. Click "Connect" → "Drivers" → Copy connection string
+2. Sign up or login with GitHub
+3. Create a new project (e.g., "Kanz-ul-Huda")
+4. Create a cluster:
+   - Choose **M0 Free** tier
+   - Select your region (closest to your users)
+   - Cluster name: `kanz-ul-huda`
+5. Create a database user:
+   - Go to "Database Access"
+   - Click "Add New Database User"
+   - Username: `kanz_admin`
+   - Password: Generate secure password (save it!)
+   - Built-in Role: `Atlas admin`
+6. Whitelist IP addresses:
+   - Go to "Network Access"
+   - Click "Add IP Address"
+   - Select "Allow Access from Anywhere" (0.0.0.0/0) for development
+   - For production: Add specific IPs only
+7. Get connection string:
+   - Click "Connect" → "Drivers"
+   - Copy MongoDB URI
+   - Replace `<password>` with your password
 
-### 2. Update Connection String
-
-Replace `<password>` with your database password:
+**Connection String Format**:
 
 ```
-mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/kanz-ul-huda?retryWrites=true&w=majority
+mongodb+srv://kanz_admin:your-password@cluster0.xxxxx.mongodb.net/kanz-ul-huda?retryWrites=true&w=majority
 ```
 
 ---
 
-## 🔧 Part 2: Backend Deployment (Render.com - Recommended)
+## 🔧 Step 2: Backend Deployment (Render.com)
 
-### Step 1: Prepare Your Backend
+### 2.1: Prepare Backend for Deployment
 
-1. Create/Update `.env` file in backend folder:
+1. **Create `.env` in backend folder**:
 
 ```env
+# Production Environment
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/kanz-ul-huda
-CORS_ORIGIN=https://your-frontend-domain.netlify.app
-JWT_SECRET=your-super-secret-key-change-this
+
+# Database
+MONGODB_URI=mongodb+srv://kanz_admin:your-password@cluster0.xxxxx.mongodb.net/kanz-ul-huda?retryWrites=true&w=majority
+
+# API Configuration
+CORS_ORIGIN=https://your-vercel-app.vercel.app
+JWT_SECRET=your-super-secure-random-key-min-32-characters-long
 JWT_EXPIRE=7d
-WEEK_START_DAY=4
+
+# Application
+WEEK_START_DAY=6
 ```
 
-2. Create `.gitignore` in backend (if not exists):
+2. **Verify `.gitignore` in backend**:
 
 ```
 node_modules/
 .env
 .env.local
+.env.*.local
 logs/
 *.log
 .DS_Store
+dist/
+build/
 ```
 
-3. Push backend code to GitHub
+3. **Check `package.json` has correct start script**:
 
-### Step 2: Deploy on Render
+```json
+{
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  }
+}
+```
 
-1. Go to [Render.com](https://render.com)
-2. Sign up with GitHub
-3. Click "New +" → "Web Service"
-4. Connect your GitHub repository
-5. Select the backend folder:
+4. **Push code to GitHub**:
+
+```bash
+cd backend
+git add .
+git commit -m "Prepare backend for Render deployment"
+git push origin main
+```
+
+### 2.2: Deploy to Render
+
+1. Go to [Render.com](https://render.com) and sign in with GitHub
+2. Click **"New +"** → **"Web Service"**
+3. Connect your GitHub repository
+4. **Configure the service**:
    - **Name**: `kanz-ul-huda-backend`
-   - **Root Directory**: `backend` (or path to your backend)
+   - **Root Directory**: `backend`
    - **Runtime**: `Node`
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
+   - **Instance Type**: Free tier (good for testing)
 
-6. Add Environment Variables:
-   - Click "Advanced" → "Add Environment Variable"
-   - Add all variables from your `.env`:
-     ```
-     NODE_ENV = production
-     MONGODB_URI = mongodb+srv://username:password@...
-     CORS_ORIGIN = https://your-frontend.netlify.app
-     JWT_SECRET = your-secret-key
-     JWT_EXPIRE = 7d
-     WEEK_START_DAY = 4
-     ```
+5. **Add Environment Variables** (click "Advanced"):
+   - Click **"Add Environment Variable"** for each:
 
-7. Click "Create Web Service"
-8. Wait for deployment (5-10 minutes)
-9. Get your backend URL: `https://kanz-ul-huda-backend.onrender.com`
+   | Key              | Value                                |
+   | ---------------- | ------------------------------------ |
+   | `NODE_ENV`       | `production`                         |
+   | `MONGODB_URI`    | `mongodb+srv://kanz_admin:...`       |
+   | `CORS_ORIGIN`    | `https://your-vercel-app.vercel.app` |
+   | `JWT_SECRET`     | Your secure random key               |
+   | `JWT_EXPIRE`     | `7d`                                 |
+   | `WEEK_START_DAY` | `6`                                  |
+
+6. Click **"Create Web Service"**
+7. Wait for deployment (5-10 minutes)
+8. **Copy your backend URL**: `https://kanz-ul-huda-backend.onrender.com`
+
+### 2.3: Monitor Render Deployment
+
+- Watch logs in Render dashboard for any errors
+- Test backend: `https://kanz-ul-huda-backend.onrender.com/api/health`
+- Should return: `{"status":"ok"}`
 
 ---
 
-## 🎨 Part 3: Frontend Deployment (Netlify)
+## 🎨 Step 3: Frontend Deployment (Vercel)
 
-### Step 1: Prepare Your Frontend
+### 3.1: Prepare Frontend for Deployment
 
-1. Create `.env.production` in frontend folder:
+1. **Create `.env.production` in frontend folder**:
 
 ```env
 VITE_API_URL=https://kanz-ul-huda-backend.onrender.com/api
 ```
 
-2. Create `.gitignore` in frontend (if not exists):
+2. **Verify `.gitignore` in frontend**:
 
 ```
 node_modules/
 dist/
 .env.local
+.env.*.local
 .DS_Store
 *.log
+*.pem
 ```
 
-3. Update [frontend/vite.config.js](frontend/vite.config.js) to remove the proxy (only needed for development):
+3. **Verify `vite.config.js`** (should not have API proxy for production):
 
 ```javascript
 import { defineConfig } from 'vite'
@@ -123,192 +177,260 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          icons: ['lucide-react'],
-        },
-      },
-    },
   },
 })
 ```
 
-4. Push frontend code to GitHub
+4. **Test locally**:
 
-### Step 2: Deploy on Netlify
+```bash
+cd frontend
+npm run build
+npm run preview
+```
 
-1. Go to [Netlify](https://netlify.com)
-2. Click "Add new site" → "Import an existing project"
-3. Choose GitHub and authorize
-4. Select your repository
-5. Configure:
-   - **Base directory**: `frontend`
-   - **Build command**: `npm run build`
-   - **Publish directory**: `frontend/dist`
+5. **Push to GitHub**:
 
-6. Click "Show advanced" → "New variable":
-   - **Key**: `VITE_API_URL`
-   - **Value**: `https://kanz-ul-huda-backend.onrender.com/api`
+```bash
+git add .
+git commit -m "Prepare frontend for Vercel deployment"
+git push origin main
+```
 
-7. Click "Deploy site"
-8. Wait for build to complete
-9. Your frontend URL: `https://your-site-name.netlify.app`
+### 3.2: Deploy to Vercel
+
+1. Go to [Vercel.com](https://vercel.com) and sign in with GitHub
+2. Click **"Add New..."** → **"Project"**
+3. **Import your repository**:
+   - Select your GitHub repository
+   - Click "Import"
+
+4. **Configure project**:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
+
+5. **Add Environment Variables**:
+   - Click "Environment Variables"
+   - Add:
+     - **Name**: `VITE_API_URL`
+     - **Value**: `https://kanz-ul-huda-backend.onrender.com/api`
+   - Select scope: `Production`, `Preview`, `Development`
+
+6. Click **"Deploy"**
+7. Wait for build to complete (~2-3 minutes)
+8. **Copy your frontend URL**: `https://your-project-name.vercel.app`
+
+### 3.3: Configure Vercel Domain (Optional)
+
+1. Go to Vercel project settings
+2. Go to "Domains"
+3. Add custom domain or use default `*.vercel.app`
+4. Update backend `CORS_ORIGIN` with this URL
 
 ---
 
-## 🔄 Part 4: Update CORS Configuration
+## 🔗 Step 4: Connect Backend & Frontend
 
-After deployment, update your backend `.env` on Render:
+### 4.1: Update Backend CORS
 
-1. Go to Render Dashboard
+1. Go to Render dashboard
 2. Select your backend service
-3. Go to "Environment"
-4. Update `CORS_ORIGIN` with your Netlify domain:
-
+3. Go to **"Environment"** tab
+4. Update `CORS_ORIGIN`:
    ```
-   CORS_ORIGIN=https://your-site-name.netlify.app
+   https://your-project-name.vercel.app
    ```
+5. Click **"Save"** - backend will auto-redeploy
 
-5. Save and redeploy
+### 4.2: Verify API Connection
+
+1. Open your frontend: `https://your-project-name.vercel.app`
+2. Open DevTools (F12) → **Console** tab
+3. Try logging in
+4. Check for CORS errors or connection issues
+5. If errors, check:
+   - Backend URL is correct
+   - Backend is running
+   - CORS_ORIGIN matches exactly
 
 ---
 
 ## ✅ Testing Your Deployment
 
-1. Visit your frontend: `https://your-site-name.netlify.app`
-2. Try to login - it should connect to your backend
-3. Check browser console (F12) for any errors
-4. Test backend directly: `https://kanz-ul-huda-backend.onrender.com/api/health`
+### Backend Tests
+
+```bash
+# Test API is running
+curl https://kanz-ul-huda-backend.onrender.com/api/health
+
+# Test database connection
+curl https://kanz-ul-huda-backend.onrender.com/api/stats/weekly
+
+# Test authentication
+curl -X POST https://kanz-ul-huda-backend.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","password":"test"}'
+```
+
+### Frontend Tests
+
+1. Visit frontend URL
+2. Try to login with test credentials
+3. Navigate through different pages
+4. Check network tab (DevTools) for API calls
+5. Verify no 404 or CORS errors
 
 ---
 
 ## 🐛 Troubleshooting
 
-### CORS Error
+### Issue: CORS Error in Browser
 
-- Check `CORS_ORIGIN` in backend `.env`
-- Ensure it matches your frontend domain exactly
-- Redeploy backend after changing
+**Error**: `Access to XMLHttpRequest has been blocked by CORS policy`
 
-### API Not Found
+**Solution**:
 
-- Check `VITE_API_URL` in `.env.production`
-- Verify backend URL is correct
-- Redeploy frontend after changes
+1. Check `CORS_ORIGIN` in Render environment variables
+2. Must match frontend URL exactly (including protocol)
+3. Redeploy backend after changing
+4. Clear browser cache and reload
 
-### Database Connection Error
+### Issue: 502 Bad Gateway on Render
 
-- Verify `MONGODB_URI` is correct
-- Check MongoDB Atlas whitelist includes Render's IP (set to 0.0.0.0/0)
-- Test connection string locally first
+**Solution**:
 
-### Build Fails on Netlify
+1. Check Render logs for errors
+2. Verify `npm start` command is correct
+3. Check all environment variables are set
+4. Restart service in Render dashboard
 
-- Check build logs in Netlify dashboard
-- Ensure `npm run build` works locally
-- Verify all dependencies are in `package.json`
+### Issue: Build Fails on Vercel
+
+**Solution**:
+
+1. Check build logs in Vercel dashboard
+2. Run `npm run build` locally to reproduce
+3. Verify all dependencies in `package.json`
+4. Check for hardcoded paths or environment variables
+
+### Issue: Cannot Connect to MongoDB
+
+**Solution**:
+
+1. Verify connection string is correct
+2. Check MongoDB password doesn't have special characters (or URL encode them)
+3. Whitelist Render IP in MongoDB Atlas (0.0.0.0/0 for testing)
+4. Test connection string locally first
+
+### Issue: Environment Variables Not Loaded
+
+**Solution**:
+
+1. Redeploy service after adding variables
+2. For Vercel: Variables take effect after redeploy
+3. For Render: Redeploy service manually
+4. Check variable names match exactly (case-sensitive)
 
 ---
 
-## 📝 Alternative: Vercel for Backend
+## 🔄 Updating Your Deployment
 
-If you prefer Vercel instead of Render:
+### Push Updates to Backend
 
-1. Create `vercel.json` in backend:
-
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
-  ]
-}
+```bash
+cd backend
+# Make changes
+git add .
+git commit -m "Fix: update API logic"
+git push origin main
+# Render auto-deploys (if enabled)
 ```
 
-2. Push to GitHub
-3. Go to Vercel.com → Import Project
-4. Select your repo
-5. Add environment variables
-6. Deploy
+### Push Updates to Frontend
 
-**Note**: Vercel's free tier has limitations for long-running servers. Render is recommended for Node.js backends.
-
----
-
-## 🔒 Security Checklist
-
-- [ ] JWT_SECRET is strong and random
-- [ ] MongoDB password is secure
-- [ ] CORS_ORIGIN is set correctly (no wildcards in production)
-- [ ] API keys are in environment variables (not hardcoded)
-- [ ] `.env` file is in `.gitignore`
-- [ ] Remove `console.log` statements before deployment
-- [ ] Test error handling in production
-
----
-
-## 📦 Updating Your Deployment
-
-### Backend Updates
-
-1. Push changes to GitHub
-2. Render auto-deploys on push (if enabled)
-3. Monitor deployment in Render dashboard
-
-### Frontend Updates
-
-1. Push changes to GitHub
-2. Netlify auto-deploys on push
-3. Check build status in Netlify dashboard
-
----
-
-## 🚀 Environment Variables Summary
-
-### Backend (.env on Render)
-
+```bash
+cd frontend
+# Make changes
+git add .
+git commit -m "Fix: update UI"
+git push origin main
+# Vercel auto-deploys
 ```
+
+---
+
+## 🔐 Production Security Checklist
+
+- [ ] **JWT_SECRET** is long (32+ characters) and random
+- [ ] **MongoDB password** is strong (no simple passwords)
+- [ ] **CORS_ORIGIN** is set to exact domain (no wildcards)
+- [ ] **No hardcoded secrets** in code or config files
+- [ ] **.env file is in .gitignore** (never commit secrets)
+- [ ] **Removed console.log statements** before deployment
+- [ ] **API error messages don't expose internal details**
+- [ ] **Database user has minimal permissions** (not admin in production)
+- [ ] **HTTPS enabled** on both Render and Vercel (automatic)
+- [ ] **Monitor logs regularly** for errors and anomalies
+
+---
+
+## 📊 Environment Variables Summary
+
+### Backend (Render)
+
+```env
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=mongodb+srv://...
-CORS_ORIGIN=https://your-frontend.netlify.app
-JWT_SECRET=your-secure-key
+MONGODB_URI=mongodb+srv://kanz_admin:password@cluster0.xxxxx.mongodb.net/kanz-ul-huda
+CORS_ORIGIN=https://your-vercel-app.vercel.app
+JWT_SECRET=your-random-32-character-minimum-key
 JWT_EXPIRE=7d
-WEEK_START_DAY=4
+WEEK_START_DAY=6
 ```
 
-### Frontend (.env.production)
+### Frontend (Vercel)
 
-```
-VITE_API_URL=https://your-backend.onrender.com/api
+```env
+VITE_API_URL=https://kanz-ul-huda-backend.onrender.com/api
 ```
 
 ---
 
-## 💡 Tips
+## 💡 Pro Tips for Production
 
-- Use separate MongoDB clusters for dev and production
-- Monitor logs regularly on both platforms
-- Set up error tracking (Sentry, etc.) for production
-- Use HTTPS everywhere
-- Keep dependencies updated
-- Regular backups of MongoDB data
+1. **Use separate MongoDB clusters** for development and production
+2. **Enable Render's auto-deploy** from GitHub (in service settings)
+3. **Monitor memory usage** on Render free tier (auto-suspends after 15 mins of inactivity)
+4. **Use Vercel analytics** to track frontend performance
+5. **Set up error tracking** with Sentry or similar
+6. **Enable HTTPS redirects** (Vercel does this by default)
+7. **Keep dependencies updated** regularly
+8. **Test staging before production** (use preview branches)
+9. **Monitor API response times** and database queries
+10. **Regular MongoDB backups** (enable in Atlas settings)
 
 ---
 
-**Happy Deploying! 🎉**
+## 🆘 Getting Help
+
+- **Render Issues**: [Render Documentation](https://render.com/docs)
+- **Vercel Issues**: [Vercel Documentation](https://vercel.com/docs)
+- **MongoDB Issues**: [MongoDB Documentation](https://docs.mongodb.com)
+- **CORS Errors**: Check [CORS guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+
+---
+
+**Your app is now live! 🎉**

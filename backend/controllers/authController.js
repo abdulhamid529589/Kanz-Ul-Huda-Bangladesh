@@ -1,6 +1,11 @@
 import User from '../models/User.js'
 import { generateToken } from '../middleware/auth.js'
-import { asyncHandler, AppError, sendSuccessResponse, sendErrorResponse } from '../utils/errorHandler.js'
+import {
+  asyncHandler,
+  AppError,
+  sendSuccessResponse,
+  sendErrorResponse,
+} from '../utils/errorHandler.js'
 import logger from '../utils/logger.js'
 
 /**
@@ -70,7 +75,7 @@ export const login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ username: username.toLowerCase() }).select('+password')
 
   if (!user) {
-    logger.warning('Login attempt with invalid username', { username: username.toLowerCase() })
+    logger.warn('Login attempt with invalid username', { username: username.toLowerCase() })
     throw new AppError('Invalid credentials', 401)
   }
 
@@ -83,7 +88,7 @@ export const login = asyncHandler(async (req, res) => {
   const isPasswordMatch = await user.comparePassword(password)
 
   if (!isPasswordMatch) {
-    logger.warning('Login attempt with invalid password', { username: user.username })
+    logger.warn('Login attempt with invalid password', { username: user.username })
     throw new AppError('Invalid credentials', 401)
   }
 
