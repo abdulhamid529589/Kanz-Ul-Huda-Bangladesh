@@ -62,9 +62,30 @@ export const authorize = (...roles) => {
   }
 }
 
-// Generate JWT Token
-export const generateToken = (id) => {
+// Generate Access Token (short-lived)
+export const generateAccessToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '24h',
+    expiresIn: process.env.JWT_EXPIRE || '1h',
   })
+}
+
+// Generate Refresh Token (long-lived)
+export const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d',
+  })
+}
+
+// Legacy function for backward compatibility
+export const generateToken = (id) => {
+  return generateAccessToken(id)
+}
+
+// Verify Refresh Token
+export const verifyRefreshToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET)
+  } catch (error) {
+    return null
+  }
 }

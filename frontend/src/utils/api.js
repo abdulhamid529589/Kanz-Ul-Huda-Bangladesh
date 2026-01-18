@@ -1,25 +1,126 @@
 // API Configuration
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
+// Token refresh function
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+
+  isRefreshing = false
+  failedQueue = []
+}
+
 /**
- * Make API call with authentication
+ * Refresh access token using refresh token
+ * @returns {Promise<string|null>} - New access token or null if refresh fails
+ */
+const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')
+
+  if (!refreshToken) {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    window.location.href = '/login'
+    return null
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      const newAccessToken = data.data?.accessToken || data.accessToken
+      if (newAccessToken) {
+        localStorage.setItem('accessToken', newAccessToken)
+        return newAccessToken
+      }
+    }
+
+    // Refresh failed, logout user
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    window.location.href = '/login'
+    return null
+  } catch (error) {
+    console.error('Token refresh error:', error)
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    window.location.href = '/login'
+    return null
+  }
+}
+
+/**
+ * Make API call with authentication and automatic token refresh
  * @param {string} endpoint - API endpoint (e.g., '/members')
  * @param {object} options - Fetch options (method, body, etc.)
- * @param {string} token - JWT token
+ * @param {string} token - JWT token (optional, uses accessToken from localStorage if not provided)
  * @returns {Promise} - Response object with ok and data properties
  */
 export const apiCall = async (endpoint, options = {}, token = null) => {
   try {
+    const accessToken = token || localStorage.getItem('accessToken')
+
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
         ...options.headers,
       },
     })
 
     const data = await response.json()
+
+    // If 401 and we have a refresh token, try to refresh and retry
+    if (response.status === 401 && !token) {
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      if (refreshToken && !isRefreshing) {
+        isRefreshing = true
+
+        try {
+          const newAccessToken = await refreshAccessToken()
+
+          if (newAccessToken) {
+            processQueue(null, newAccessToken)
+
+            // Retry the original request with new token
+            const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+              ...options,
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${newAccessToken}`,
+                ...options.headers,
+              },
+            })
+
+            const retryData = await retryResponse.json()
+
+            return {
+              ok: retryResponse.ok,
+              status: retryResponse.status,
+              data: retryData,
+            }
+          }
+        } catch (error) {
+          processQueue(error, null)
+        }
+      }
+    }
 
     return {
       ok: response.ok,

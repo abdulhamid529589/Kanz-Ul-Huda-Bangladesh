@@ -1,5 +1,8 @@
+import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
-import { generateToken } from '../middleware/auth.js'
+import OTPVerification from '../models/OTPVerification.js'
+import LoginOTP from '../models/LoginOTP.js'
+import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js'
 import {
   asyncHandler,
   AppError,
@@ -7,9 +10,191 @@ import {
   sendErrorResponse,
 } from '../utils/errorHandler.js'
 import logger from '../utils/logger.js'
+import { generateOTP, sendOTPEmail, sendWelcomeEmail } from '../utils/emailService.js'
 
 /**
- * @desc    Register new user (Dawah team member)
+ * @desc    Request registration - Step 1: Send OTP
+ * @route   POST /api/auth/request-otp
+ * @access  Public
+ */
+export const requestOTP = asyncHandler(async (req, res) => {
+  const { username, password, fullName, email, registrationCode } = req.body
+
+  // Validate registration code (security measure)
+  const REGISTRATION_CODE = process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
+
+  if (registrationCode !== REGISTRATION_CODE) {
+    throw new AppError('Invalid registration code. Please contact the administrator.', 400)
+  }
+
+  // Check if username already exists
+  const usernameExists = await User.findOne({ username: username.toLowerCase() })
+  if (usernameExists) {
+    throw new AppError('Username already exists', 400)
+  }
+
+  // Check if email already exists
+  const emailExists = await User.findOne({ email: email.toLowerCase() })
+  if (emailExists) {
+    throw new AppError('Email already exists', 400)
+  }
+
+  // Generate OTP
+  const otp = generateOTP()
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+  // Delete any existing OTP for this email
+  await OTPVerification.deleteOne({ email: email.toLowerCase() })
+
+  // Create OTP record
+  const otpRecord = await OTPVerification.create({
+    email: email.toLowerCase(),
+    username: username.toLowerCase(),
+    otp,
+    expiresAt,
+    registrationData: {
+      password,
+      fullName,
+      registrationCode,
+    },
+  })
+
+  // Send OTP email
+  try {
+    await sendOTPEmail(email, otp, fullName)
+  } catch (error) {
+    // Delete the OTP record if email sending fails
+    await OTPVerification.deleteOne({ _id: otpRecord._id })
+    throw new AppError('Failed to send OTP email. Please try again.', 500)
+  }
+
+  logger.info('OTP sent for registration', { email, username: username.toLowerCase() })
+
+  sendSuccessResponse(res, 200, 'OTP sent to your email. Valid for 10 minutes.', {
+    email: email.toLowerCase(),
+  })
+})
+
+/**
+ * @desc    Verify OTP and complete registration - Step 2
+ * @route   POST /api/auth/verify-otp
+ * @access  Public
+ */
+export const verifyOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  if (!email || !otp) {
+    throw new AppError('Email and OTP are required', 400)
+  }
+
+  // Find OTP record
+  const otpRecord = await OTPVerification.findOne({
+    email: email.toLowerCase(),
+  })
+
+  if (!otpRecord) {
+    throw new AppError('No OTP found for this email. Please request a new one.', 400)
+  }
+
+  // Check if OTP is expired
+  if (new Date() > otpRecord.expiresAt) {
+    await OTPVerification.deleteOne({ _id: otpRecord._id })
+    throw new AppError('OTP has expired. Please request a new one.', 400)
+  }
+
+  // Check OTP attempts
+  if (otpRecord.attempts >= 5) {
+    await OTPVerification.deleteOne({ _id: otpRecord._id })
+    throw new AppError('Too many incorrect attempts. Please request a new OTP.', 429)
+  }
+
+  // Verify OTP
+  if (otpRecord.otp !== otp) {
+    otpRecord.attempts += 1
+    await otpRecord.save()
+    throw new AppError(`Incorrect OTP. ${5 - otpRecord.attempts} attempts remaining.`, 400)
+  }
+
+  // OTP verified - now create the user
+  const { password, fullName, registrationCode } = otpRecord.registrationData
+  const username = otpRecord.username
+
+  // Check if this is the first user (make them admin)
+  const userCount = await User.countDocuments()
+  const role = userCount === 0 ? 'admin' : 'collector'
+
+  // Create user
+  const user = await User.create({
+    username,
+    password,
+    fullName,
+    email: email.toLowerCase(),
+    role,
+    status: 'active',
+  })
+
+  logger.info('New user registered with 2FA', { username: user.username, role: user.role })
+
+  // Delete OTP record after successful verification
+  await OTPVerification.deleteOne({ _id: otpRecord._id })
+
+  // Send welcome email
+  await sendWelcomeEmail(email, fullName, username)
+
+  // Generate token
+  const token = generateToken(user._id)
+  const userResponse = user.toJSON()
+
+  sendSuccessResponse(res, 201, `Registration successful! You are registered as ${role}.`, {
+    token,
+    user: userResponse,
+  })
+})
+
+/**
+ * @desc    Resend OTP
+ * @route   POST /api/auth/resend-otp
+ * @access  Public
+ */
+export const resendOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    throw new AppError('Email is required', 400)
+  }
+
+  // Find OTP record
+  const otpRecord = await OTPVerification.findOne({
+    email: email.toLowerCase(),
+  })
+
+  if (!otpRecord) {
+    throw new AppError('No registration found for this email.', 400)
+  }
+
+  // Generate new OTP
+  const newOtp = generateOTP()
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+  otpRecord.otp = newOtp
+  otpRecord.expiresAt = expiresAt
+  otpRecord.attempts = 0
+  await otpRecord.save()
+
+  // Send new OTP email
+  try {
+    await sendOTPEmail(email, newOtp, otpRecord.registrationData.fullName)
+  } catch (error) {
+    throw new AppError('Failed to send OTP email. Please try again.', 500)
+  }
+
+  logger.info('OTP resent for registration', { email })
+
+  sendSuccessResponse(res, 200, 'New OTP sent to your email. Valid for 10 minutes.')
+})
+
+/**
+ * @desc    Register new user (Dawah team member) - LEGACY (kept for backward compatibility)
  * @route   POST /api/auth/register
  * @access  Public
  */
@@ -94,18 +279,23 @@ export const login = asyncHandler(async (req, res) => {
 
   // Update last login
   user.lastLogin = new Date()
+
+  // Generate access and refresh tokens
+  const accessToken = generateAccessToken(user._id)
+  const refreshToken = generateRefreshToken(user._id)
+
+  // Store refresh token in database
+  user.refreshToken = refreshToken
   await user.save()
 
   logger.info('User logged in', { username: user.username, userId: user._id })
-
-  // Generate token
-  const token = generateToken(user._id)
 
   // Remove password from response
   const userResponse = user.toJSON()
 
   sendSuccessResponse(res, 200, 'Login successful', {
-    token,
+    accessToken,
+    refreshToken,
     user: userResponse,
   })
 })
@@ -135,7 +325,46 @@ export const logout = asyncHandler(async (req, res) => {
   // But we can log the logout event if needed
   logger.info('User logged out', { userId: req.user.id })
 
+  // Clear refresh token from database
+  await User.findByIdAndUpdate(req.user.id, { refreshToken: null })
+
   sendSuccessResponse(res, 200, 'Logout successful')
+})
+
+/**
+ * @desc    Refresh access token using refresh token
+ * @route   POST /api/auth/refresh-token
+ * @access  Public
+ */
+export const refreshToken = asyncHandler(async (req, res) => {
+  const { refreshToken: token } = req.body
+
+  if (!token) {
+    throw new AppError('Refresh token is required', 400)
+  }
+
+  // Find user with this refresh token
+  const user = await User.findOne({ refreshToken: token })
+
+  if (!user) {
+    throw new AppError('Invalid refresh token', 401)
+  }
+
+  // Verify refresh token
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET)
+
+    // Generate new access token
+    const newAccessToken = generateAccessToken(user._id)
+
+    logger.info('Access token refreshed', { userId: user._id })
+
+    sendSuccessResponse(res, 200, 'Token refreshed successfully', {
+      accessToken: newAccessToken,
+    })
+  } catch (error) {
+    throw new AppError('Invalid or expired refresh token', 401)
+  }
 })
 
 /**
@@ -167,4 +396,181 @@ export const changePassword = asyncHandler(async (req, res) => {
   logger.info('Password changed', { userId: user._id })
 
   sendSuccessResponse(res, 200, 'Password changed successfully')
+})
+
+/**
+ * @desc    Request login OTP - Step 1: Send OTP for 2FA login
+ * @route   POST /api/auth/login-request-otp
+ * @access  Public
+ */
+export const loginRequestOTP = asyncHandler(async (req, res) => {
+  const { username, password } = req.body
+
+  // Find user with password
+  const user = await User.findOne({ username: username.toLowerCase() }).select('+password')
+
+  if (!user) {
+    logger.warn('Login OTP attempt with invalid username', { username: username.toLowerCase() })
+    throw new AppError('Invalid credentials', 401)
+  }
+
+  // Check if user is active
+  if (user.status !== 'active') {
+    throw new AppError('Your account is inactive. Please contact administrator.', 403)
+  }
+
+  // Check password
+  const isPasswordMatch = await user.comparePassword(password)
+
+  if (!isPasswordMatch) {
+    logger.warn('Login OTP attempt with invalid password', { username: user.username })
+    throw new AppError('Invalid credentials', 401)
+  }
+
+  // Generate OTP for login verification
+  const otp = generateOTP()
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+  // Delete any existing login OTP for this user
+  await LoginOTP.deleteOne({ userId: user._id })
+
+  // Create login OTP record
+  const loginOtpRecord = await LoginOTP.create({
+    userId: user._id,
+    username: user.username,
+    email: user.email,
+    otp,
+    expiresAt,
+  })
+
+  // Send OTP email
+  try {
+    await sendOTPEmail(user.email, otp, user.fullName)
+  } catch (error) {
+    // Delete the OTP record if email sending fails
+    await LoginOTP.deleteOne({ _id: loginOtpRecord._id })
+    throw new AppError('Failed to send OTP email. Please try again.', 500)
+  }
+
+  logger.info('Login OTP sent', { username: user.username, userId: user._id })
+
+  sendSuccessResponse(res, 200, 'OTP sent to your email. Valid for 10 minutes.', {
+    email: user.email,
+    username: user.username,
+  })
+})
+
+/**
+ * @desc    Verify login OTP - Step 2: Verify OTP and complete login
+ * @route   POST /api/auth/login-verify-otp
+ * @access  Public
+ */
+export const loginVerifyOTP = asyncHandler(async (req, res) => {
+  const { username, otp } = req.body
+
+  if (!username || !otp) {
+    throw new AppError('Username and OTP are required', 400)
+  }
+
+  // Find user first
+  const user = await User.findOne({ username: username.toLowerCase() })
+
+  if (!user) {
+    throw new AppError('User not found', 404)
+  }
+
+  // Find login OTP record
+  const loginOtpRecord = await LoginOTP.findOne({
+    userId: user._id,
+  })
+
+  if (!loginOtpRecord) {
+    throw new AppError('No OTP found. Please login again to request a new OTP.', 400)
+  }
+
+  // Check if OTP is expired
+  if (new Date() > loginOtpRecord.expiresAt) {
+    await LoginOTP.deleteOne({ _id: loginOtpRecord._id })
+    throw new AppError('OTP has expired. Please login again.', 400)
+  }
+
+  // Check OTP attempts
+  if (loginOtpRecord.attempts >= 5) {
+    await LoginOTP.deleteOne({ _id: loginOtpRecord._id })
+    throw new AppError('Too many incorrect attempts. Please login again.', 429)
+  }
+
+  // Verify OTP
+  if (loginOtpRecord.otp !== otp) {
+    loginOtpRecord.attempts += 1
+    await loginOtpRecord.save()
+    throw new AppError(`Incorrect OTP. ${5 - loginOtpRecord.attempts} attempts remaining.`, 400)
+  }
+
+  // OTP verified - update last login
+  user.lastLogin = new Date()
+  await user.save()
+
+  // Delete used OTP record
+  await LoginOTP.deleteOne({ _id: loginOtpRecord._id })
+
+  logger.info('User logged in with 2FA', { username: user.username, userId: user._id })
+
+  // Generate token
+  const token = generateToken(user._id)
+  const userResponse = user.toJSON()
+
+  sendSuccessResponse(res, 200, 'Login successful', {
+    token,
+    user: userResponse,
+  })
+})
+
+/**
+ * @desc    Resend login OTP
+ * @route   POST /api/auth/login-resend-otp
+ * @access  Public
+ */
+export const loginResendOTP = asyncHandler(async (req, res) => {
+  const { username } = req.body
+
+  if (!username) {
+    throw new AppError('Username is required', 400)
+  }
+
+  // Find user
+  const user = await User.findOne({ username: username.toLowerCase() })
+
+  if (!user) {
+    throw new AppError('User not found', 404)
+  }
+
+  // Find login OTP record
+  const loginOtpRecord = await LoginOTP.findOne({
+    userId: user._id,
+  })
+
+  if (!loginOtpRecord) {
+    throw new AppError('No login OTP request found. Please login again.', 400)
+  }
+
+  // Generate new OTP
+  const newOtp = generateOTP()
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+  loginOtpRecord.otp = newOtp
+  loginOtpRecord.expiresAt = expiresAt
+  loginOtpRecord.attempts = 0
+  await loginOtpRecord.save()
+
+  // Send new OTP email
+  try {
+    await sendOTPEmail(user.email, newOtp, user.fullName)
+  } catch (error) {
+    throw new AppError('Failed to send OTP email. Please try again.', 500)
+  }
+
+  logger.info('Login OTP resent', { username: user.username })
+
+  sendSuccessResponse(res, 200, 'New OTP sent to your email. Valid for 10 minutes.')
 })

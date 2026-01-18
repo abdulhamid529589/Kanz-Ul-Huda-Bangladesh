@@ -18,25 +18,64 @@ export const useAuth = () => {
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [token, setToken] = useState(localStorage.getItem('token'))
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
   const [loading, setLoading] = useState(true)
   const hasFetched = useRef(false)
 
+  // For backward compatibility
+  const token = accessToken
+
   const logout = () => {
     setUser(null)
-    setToken(null)
-    localStorage.removeItem('token')
+    setAccessToken(null)
+    setRefreshToken(null)
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+  }
+
+  const refreshAccessToken = async () => {
+    if (!refreshToken) {
+      logout()
+      return false
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        const newAccessToken = data.data?.accessToken || data.accessToken
+        if (newAccessToken) {
+          setAccessToken(newAccessToken)
+          localStorage.setItem('accessToken', newAccessToken)
+          return true
+        }
+      }
+
+      logout()
+      return false
+    } catch (error) {
+      console.error('Token refresh error:', error)
+      logout()
+      return false
+    }
   }
 
   const fetchUser = useCallback(async () => {
-    if (!token) {
+    if (!accessToken) {
       setLoading(false)
       return
     }
 
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
 
       if (response.ok) {
@@ -49,6 +88,12 @@ export const AuthProvider = ({ children }) => {
           // Invalid response format, logout
           logout()
         }
+      } else if (response.status === 401 && refreshToken) {
+        // Try to refresh token
+        const refreshed = await refreshAccessToken()
+        if (!refreshed) {
+          logout()
+        }
       } else {
         logout()
       }
@@ -58,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [accessToken, refreshToken])
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -78,13 +123,15 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Backend now returns: { success: true, message: '...', data: { token, user } }
+        // Registration without 2FA returns token
         const token = data.data?.token || data.token
         const user = data.data?.user || data.user
 
-        setToken(token)
-        setUser(user)
-        localStorage.setItem('token', token)
+        if (token) {
+          setAccessToken(token)
+          setUser(user)
+          localStorage.setItem('accessToken', token)
+        }
         return { success: true, message: data.message }
       } else {
         // Handle validation errors
@@ -112,17 +159,20 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Backend now returns: { success: true, message: '...', data: { token, user } }
-        const responseToken = data.data?.token || data.token
+        // Backend now returns: { success: true, message: '...', data: { accessToken, refreshToken, user } }
+        const responseAccessToken = data.data?.accessToken || data.accessToken
+        const responseRefreshToken = data.data?.refreshToken || data.refreshToken
         const responseUser = data.data?.user || data.user
 
-        if (!responseToken || !responseUser) {
+        if (!responseAccessToken || !responseRefreshToken || !responseUser) {
           return { success: false, message: 'Invalid response format from server' }
         }
 
-        setToken(responseToken)
+        setAccessToken(responseAccessToken)
+        setRefreshToken(responseRefreshToken)
         setUser(responseUser)
-        localStorage.setItem('token', responseToken)
+        localStorage.setItem('accessToken', responseAccessToken)
+        localStorage.setItem('refreshToken', responseRefreshToken)
         return { success: true }
       } else {
         // Handle validation errors
@@ -142,10 +192,13 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     token,
+    accessToken,
+    refreshToken,
     loading,
     register,
     login,
     logout,
+    refreshAccessToken,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
   }

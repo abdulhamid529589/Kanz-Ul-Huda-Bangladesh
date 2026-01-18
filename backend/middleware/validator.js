@@ -114,3 +114,48 @@ export const validatePasswordChange = [
     ),
   validate,
 ]
+
+/**
+ * OTP request validation rules (for /request-otp and /resend-otp)
+ */
+export const validateOTPRequest = [
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters')
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Username can only contain letters, numbers, and underscores'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter (A-Z)')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter (a-z)')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain at least one number (0-9)'),
+  body('fullName').trim().notEmpty().withMessage('Full name is required'),
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('registrationCode').trim().notEmpty().withMessage('Registration code is required'),
+  validate,
+]
+
+/**
+ * OTP verification validation rules (for /verify-otp)
+ */
+export const validateOTPVerification = [
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('otp')
+    .trim()
+    .notEmpty()
+    .withMessage('OTP is required')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('OTP must be 6 digits')
+    .isNumeric()
+    .withMessage('OTP must contain only numbers'),
+  validate,
+]

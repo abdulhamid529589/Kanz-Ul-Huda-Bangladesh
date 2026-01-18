@@ -14,6 +14,7 @@ dotenv.config()
 // Import utilities
 import { globalErrorHandler } from './utils/errorHandler.js'
 import logger from './utils/logger.js'
+import { initializeEmailService } from './utils/emailService.js'
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js'
@@ -24,6 +25,9 @@ import statsRoutes from './routes/statsRoutes.js'
 import reportRoutes from './routes/reportRoutes.js'
 
 const app = express()
+
+// Initialize email service
+initializeEmailService()
 
 // Security Middleware
 app.use(helmet())

@@ -1,8 +1,24 @@
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import { protect } from '../middleware/auth.js'
-import { register, login, getMe, logout, changePassword } from '../controllers/authController.js'
-import { validateRegister, validateLogin, validatePasswordChange } from '../middleware/validator.js'
+import {
+  register,
+  requestOTP,
+  verifyOTP,
+  resendOTP,
+  login,
+  refreshToken,
+  getMe,
+  logout,
+  changePassword,
+} from '../controllers/authController.js'
+import {
+  validateRegister,
+  validateLogin,
+  validatePasswordChange,
+  validateOTPRequest,
+  validateOTPVerification,
+} from '../middleware/validator.js'
 
 const router = express.Router()
 
@@ -25,9 +41,30 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 })
 
+// Rate limiter for OTP requests
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Only 5 OTP requests per 15 minutes per email
+  message: { success: false, message: 'Too many OTP requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req, res) => req.body.email || req.ip,
+})
+
 // Public routes
+// 2FA Registration Flow
+router.post('/request-otp', otpLimiter, validateOTPRequest, requestOTP)
+router.post('/verify-otp', validateOTPVerification, verifyOTP)
+router.post('/resend-otp', otpLimiter, validateOTPRequest, resendOTP)
+
+// Legacy registration (backward compatibility)
 router.post('/register', registerLimiter, validateRegister, register)
+
+// Legacy login (backward compatibility - password only, no 2FA)
 router.post('/login', loginLimiter, validateLogin, login)
+
+// Refresh token endpoint
+router.post('/refresh-token', refreshToken)
 
 // Protected routes
 router.get('/me', protect, getMe)

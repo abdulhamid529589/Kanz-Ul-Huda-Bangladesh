@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import RegisterPage2FA from './pages/RegisterPage2FA'
 import Dashboard from './pages/Dashboard'
 import MembersPage from './pages/MembersPage'
 import SubmissionsPage from './pages/SubmissionsPage'
@@ -33,7 +33,7 @@ const AppContent = () => {
   // Not authenticated - show login or register
   if (!user) {
     return showRegister ? (
-      <RegisterPage onBackToLogin={() => setShowRegister(false)} />
+      <RegisterPage2FA onBackToLogin={() => setShowRegister(false)} />
     ) : (
       <LoginPage onRegisterClick={() => setShowRegister(true)} />
     )
