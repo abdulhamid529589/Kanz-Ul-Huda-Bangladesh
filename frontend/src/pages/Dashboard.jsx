@@ -1,0 +1,236 @@
+import { useState, useEffect, useCallback } from 'react'
+import { CheckCircle, Clock, Calendar, TrendingUp, BarChart3 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
+
+const Dashboard = () => {
+  const { token } = useAuth()
+  const [stats, setStats] = useState(null)
+  const [recentSubmissions, setRecentSubmissions] = useState([])
+  const [pendingMembers, setPendingMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchDashboardData = useCallback(async () => {
+    if (!token) return
+
+    setLoading(true)
+    try {
+      const [statsRes, recentRes, pendingRes] = await Promise.all([
+        apiCall('/stats/dashboard', {}, token),
+        apiCall('/submissions/recent?limit=10', {}, token),
+        apiCall('/submissions/pending', {}, token),
+      ])
+
+      if (statsRes.ok) setStats(statsRes.data.data)
+      if (recentRes.ok) setRecentSubmissions(recentRes.data.data)
+      if (pendingRes.ok) setPendingMembers(pendingRes.data.data.pendingMembers)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="spinner w-12 h-12"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Current Week Summary */}
+      {stats && (
+        <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 text-white">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-medium opacity-90">Current Week</h2>
+              <p className="text-xl sm:text-2xl font-bold">{stats.currentWeek.display}</p>
+            </div>
+            <div className="text-4xl sm:text-5xl opacity-20 hidden sm:block">📿</div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6 text-black">
+            {[
+              { label: 'Total Durood', value: formatNumber(stats.currentWeek.total), icon: '📊' },
+              {
+                label: 'Submitted',
+                value: `${stats.currentWeek.submissionsCount} / ${stats.totalActiveMembers}`,
+                icon: '✅',
+              },
+              { label: 'Pending', value: stats.currentWeek.pendingCount, icon: '⏳' },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                className="bg-white text-black bg-opacity-20 rounded-lg p-3 sm:p-4 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
+              >
+                <p className="text-xs sm:text-sm font-medium text-black mb-1">{item.label}</p>
+                <motion.p
+                  className="text-2xl sm:text-3xl font-bold text-black"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.1 + 0.2 }}
+                >
+                  {item.value}
+                </motion.p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-1 font-medium text-white">
+              <span>Progress</span>
+              <span>{stats.currentWeek.progressPercentage}%</span>
+            </div>
+            <div className="w-full bg-white bg-opacity-30 rounded-full h-3">
+              <div
+                className="bg-white rounded-full h-3 transition-all duration-500"
+                style={{ width: `${stats.currentWeek.progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">This Month</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {formatNumber(stats.monthTotal)}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">This Year</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {formatNumber(stats.yearTotal)}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">All Time</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {formatNumber(stats.allTimeTotal)}
+                </p>
+              </div>
+              <div className="p-3 bg-secondary-100 dark:bg-secondary-900 rounded-full">
+                <BarChart3 className="w-6 h-6 text-secondary-600 dark:text-secondary-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pending Members */}
+        <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+          <div className="card-header">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+              <Clock className="w-5 h-5 mr-2 text-orange-500 dark:text-orange-400" />
+              Pending Members ({pendingMembers.length})
+            </h3>
+          </div>
+          <div className="max-h-96 overflow-y-auto scrollbar-custom">
+            {pendingMembers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <CheckCircle className="w-12 h-12 mx-auto mb-2 text-primary-500 dark:text-primary-400" />
+                <p>All members have submitted!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pendingMembers.slice(0, 10).map((member) => (
+                  <div
+                    key={member._id}
+                    className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900 dark:bg-opacity-30 rounded-lg border border-orange-200 dark:border-orange-700 hover:bg-orange-100 dark:hover:bg-orange-800 transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-800 dark:text-white">{member.fullName}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {member.phoneNumber}
+                      </p>
+                    </div>
+                    <button className="px-3 py-1 bg-orange-500 dark:bg-orange-600 text-white rounded text-sm hover:bg-orange-600 dark:hover:bg-orange-700 transition-colors">
+                      Contact
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Submissions */}
+        <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+          <div className="card-header">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+              <CheckCircle className="w-5 h-5 mr-2 text-primary-500 dark:text-primary-400" />
+              Recent Submissions
+            </h3>
+          </div>
+          <div className="max-h-96 overflow-y-auto scrollbar-custom">
+            {recentSubmissions.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                No submissions yet
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recentSubmissions.map((submission) => (
+                  <div
+                    key={submission._id}
+                    className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900 dark:bg-opacity-30 rounded-lg border border-primary-200 dark:border-primary-700 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800 dark:text-white">
+                        {submission.member?.fullName}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {formatTimeAgo(submission.submissionDateTime)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary-600 dark:text-primary-400">
+                        {formatNumber(submission.duroodCount)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Durood</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Dashboard
