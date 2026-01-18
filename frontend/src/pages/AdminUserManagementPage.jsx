@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Trash2, Edit, Plus, Search, Filter } from 'lucide-react'
+import { Trash2, Edit, Plus, Search, Filter, Crown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber } from '../utils/api'
 import { showError, showSuccess } from '../utils/toast'
 
 const AdminUserManagementPage = () => {
-  const { token } = useAuth()
+  const { token, isMainAdmin, user: currentUser } = useAuth()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -25,11 +25,9 @@ const AdminUserManagementPage = () => {
 
   const fetchUsers = useCallback(async () => {
     if (!token) {
-      console.log('No token available, skipping fetch')
       return
     }
 
-    console.log('Starting fetchUsers with token:', token.substring(0, 20) + '...')
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -39,30 +37,17 @@ const AdminUserManagementPage = () => {
       if (roleFilter) params.append('role', roleFilter)
       if (statusFilter) params.append('status', statusFilter)
 
-      console.log('Fetching from:', `/admin/users?${params.toString()}`)
       const res = await apiCall(`/admin/users?${params.toString()}`, {}, token)
-
-      console.log('API Response:', {
-        ok: res.ok,
-        status: res.status,
-        fullData: res.data,
-        nestedData: res.data?.data,
-        users: res.data?.data?.users,
-      })
 
       if (res.ok) {
         const usersData = res.data.data.users || []
         const pagesData = res.data.data.pagination?.pages || 1
-        console.log('Setting users:', usersData.length, 'users found')
-        console.log('Setting pages:', pagesData)
         setUsers(usersData)
         setTotalPages(pagesData)
       } else {
-        console.error('API returned not ok:', res.status, res.data)
         showError(`Failed to load users: ${res.data?.message || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
       showError('Failed to load users')
     } finally {
       setLoading(false)
@@ -80,7 +65,14 @@ const AdminUserManagementPage = () => {
     }
 
     try {
-      const res = await apiCall('/admin/users', formData, token, 'POST')
+      const res = await apiCall(
+        '/admin/users',
+        {
+          method: 'POST',
+          body: JSON.stringify(formData),
+        },
+        token,
+      )
 
       if (res.ok) {
         showSuccess('User created successfully')
@@ -93,6 +85,8 @@ const AdminUserManagementPage = () => {
           role: 'collector',
         })
         fetchUsers()
+      } else {
+        showError(res.data?.message || 'Failed to create user')
       }
     } catch (error) {
       showError(error.message || 'Failed to create user')
@@ -100,41 +94,29 @@ const AdminUserManagementPage = () => {
   }
 
   const handleChangeRole = async (userId, newRole) => {
+    if (!isMainAdmin) {
+      showError('Only the main admin can change user roles')
+      return
+    }
+
     try {
-      const res = await apiCall(`/admin/users/${userId}`, { role: newRole }, token, 'PUT')
+      const res = await apiCall(
+        `/admin/users/${userId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ role: newRole }),
+        },
+        token,
+      )
 
       if (res.ok) {
         showSuccess(`User role changed to ${newRole}`)
         fetchUsers()
+      } else {
+        showError(res.data?.message || 'Failed to change user role')
       }
     } catch (error) {
       showError(error.message || 'Failed to change user role')
-    }
-  }
-
-  const handlePromoteToAdmin = async (userId) => {
-    try {
-      const res = await apiCall(`/admin/users/${userId}/promote-to-admin`, {}, token, 'PUT')
-
-      if (res.ok) {
-        showSuccess('User promoted to admin')
-        fetchUsers()
-      }
-    } catch (error) {
-      showError(error.message || 'Failed to promote user')
-    }
-  }
-
-  const handleDemoteToCollector = async (userId) => {
-    try {
-      const res = await apiCall(`/admin/users/${userId}/demote-to-collector`, {}, token, 'PUT')
-
-      if (res.ok) {
-        showSuccess('User demoted to collector')
-        fetchUsers()
-      }
-    } catch (error) {
-      showError(error.message || 'Failed to demote user')
     }
   }
 
@@ -142,11 +124,20 @@ const AdminUserManagementPage = () => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
 
     try {
-      const res = await apiCall(`/admin/users/${userId}`, { status: newStatus }, token, 'PUT')
+      const res = await apiCall(
+        `/admin/users/${userId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ status: newStatus }),
+        },
+        token,
+      )
 
       if (res.ok) {
         showSuccess(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}`)
         fetchUsers()
+      } else {
+        showError(res.data?.message || 'Failed to update user')
       }
     } catch (error) {
       showError(error.message || 'Failed to update user')
@@ -157,11 +148,19 @@ const AdminUserManagementPage = () => {
     if (!confirm('Are you sure you want to delete this user?')) return
 
     try {
-      const res = await apiCall(`/admin/users/${userId}`, {}, token, 'DELETE')
+      const res = await apiCall(
+        `/admin/users/${userId}`,
+        {
+          method: 'DELETE',
+        },
+        token,
+      )
 
       if (res.ok) {
         showSuccess('User deleted successfully')
         fetchUsers()
+      } else {
+        showError(res.data?.message || 'Failed to delete user')
       }
     } catch (error) {
       showError(error.message || 'Failed to delete user')
@@ -288,14 +287,27 @@ const AdminUserManagementPage = () => {
                       {user.email}
                     </td>
                     <td className="px-6 py-4">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleChangeRole(user._id, e.target.value)}
-                        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                      >
-                        <option value="collector">Collector</option>
-                        <option value="admin">Admin</option>
-                      </select>
+                      <div className="flex items-center gap-2">
+                        {user.isMainAdmin ? (
+                          <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium">
+                            <Crown className="w-4 h-4" />
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </div>
+                        ) : (
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleChangeRole(user._id, e.target.value)}
+                            disabled={!isMainAdmin}
+                            className={`px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${
+                              !isMainAdmin ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            title={!isMainAdmin ? 'Only main admin can change roles' : ''}
+                          >
+                            <option value="collector">Collector</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -413,6 +425,11 @@ const AdminUserManagementPage = () => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+                {formData.password && formData.password.length < 8 && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Password must be at least 8 characters
+                  </p>
+                )}
               </div>
 
               <div>

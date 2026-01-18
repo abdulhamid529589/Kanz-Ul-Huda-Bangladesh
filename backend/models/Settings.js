@@ -26,6 +26,10 @@ const settingsSchema = new mongoose.Schema(
       enum: ['string', 'number', 'boolean', 'array', 'object'],
       default: 'string',
     },
+    version: {
+      type: Number,
+      default: 1,
+    },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

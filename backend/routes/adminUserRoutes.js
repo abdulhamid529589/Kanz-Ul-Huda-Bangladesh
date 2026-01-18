@@ -22,6 +22,7 @@ router.use(protect)
 // All routes require admin role
 router.use(authorize('admin'))
 
+// ⚠️ IMPORTANT: /stats/overview MUST come before /:id to avoid treating 'overview' as an ID
 // Get user statistics
 router.get('/stats/overview', getUserStats)
 

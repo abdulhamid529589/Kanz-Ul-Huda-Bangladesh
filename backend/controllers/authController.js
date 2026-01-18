@@ -3,6 +3,7 @@ import User from '../models/User.js'
 import OTPVerification from '../models/OTPVerification.js'
 import LoginOTP from '../models/LoginOTP.js'
 import PasswordReset from '../models/PasswordReset.js'
+import Settings from '../models/Settings.js'
 import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js'
 import {
   asyncHandler,
@@ -26,12 +27,17 @@ import {
 export const requestOTP = asyncHandler(async (req, res) => {
   const { username, password, fullName, email, registrationCode } = req.body
 
-  // Validate registration code (security measure)
-  const REGISTRATION_CODE = process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
+  // Get registration code from database, fallback to .env
+  const codeSettings = await Settings.findOne({ key: 'registrationCode' })
+  const REGISTRATION_CODE = codeSettings?.value || process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
 
   if (registrationCode !== REGISTRATION_CODE) {
     throw new AppError('Invalid registration code. Please contact the administrator.', 400)
   }
+
+  // Get current registration code version
+  const versionSettings = await Settings.findOne({ key: 'registrationCodeVersion' })
+  const currentCodeVersion = versionSettings?.value || 1
 
   // Check if username already exists
   const usernameExists = await User.findOne({ username: username.toLowerCase() })
@@ -62,6 +68,7 @@ export const requestOTP = asyncHandler(async (req, res) => {
       password,
       fullName,
       registrationCode,
+      registrationCodeVersion: currentCodeVersion,
     },
   })
 
@@ -122,7 +129,8 @@ export const verifyOTP = asyncHandler(async (req, res) => {
   }
 
   // OTP verified - now create the user
-  const { password, fullName, registrationCode } = otpRecord.registrationData
+  const { password, fullName, registrationCode, registrationCodeVersion } =
+    otpRecord.registrationData
   const username = otpRecord.username
 
   // Check if this is the first user (make them admin)
@@ -137,6 +145,7 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     email: email.toLowerCase(),
     role,
     status: 'active',
+    registrationCodeVersion,
   })
 
   logger.info('New user registered with 2FA', { username: user.username, role: user.role })

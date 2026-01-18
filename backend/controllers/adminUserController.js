@@ -12,16 +12,10 @@ import { MAIN_ADMIN_EMAIL } from '../constants.js'
 export const getAllUsers = asyncHandler(async (req, res) => {
   let { role, status, search, page = 1, limit = 20 } = req.query
 
-  console.log('DEBUG: getAllUsers called')
-  console.log('DEBUG: Raw query params:', { role, status, search, page, limit })
-
   // Clean up undefined string values
   role = role && role !== 'undefined' ? role : undefined
   status = status && status !== 'undefined' ? status : undefined
   search = search && search !== 'undefined' ? search : undefined
-
-  console.log('DEBUG: Cleaned query params:', { role, status, search, page, limit })
-  console.log('DEBUG: Authenticated user:', req.user._id, req.user.role)
 
   let query = {}
 
@@ -36,8 +30,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     ]
   }
 
-  console.log('DEBUG: Database query:', JSON.stringify(query))
-
   const skip = (page - 1) * limit
   const users = await User.find(query)
     .select('-password -refreshToken')
@@ -47,9 +39,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     .lean()
 
   const total = await User.countDocuments(query)
-
-  console.log('DEBUG: Found users:', users.length, 'Total:', total)
-  console.log('DEBUG: Users data:', users)
 
   sendSuccessResponse(res, 200, 'Users retrieved successfully', {
     users,
@@ -107,16 +96,12 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
     throw new AppError('Invalid role. Must be admin or collector', 400)
   }
 
-  // Hash password
-  const salt = await bcrypt.genSalt(10)
-  const hashedPassword = await bcrypt.hash(password, salt)
-
-  // Create user
+  // Create user (password will be hashed by User model pre-save hook)
   const user = await User.create({
     username: username.toLowerCase(),
     email: email.toLowerCase(),
     fullName,
-    password: hashedPassword,
+    password,
     role,
     status: 'active',
     createdBy: req.user._id,
@@ -169,12 +154,21 @@ export const updateUser = asyncHandler(async (req, res) => {
     if (password.length < 8) {
       throw new AppError('Password must be at least 8 characters', 400)
     }
-    const salt = await bcrypt.genSalt(10)
-    user.password = await bcrypt.hash(password, salt)
+    user.password = password // Will be hashed by User model pre-save hook
   }
 
   // Only admin can change role and status
   if (req.user.role === 'admin') {
+    // Only main admin can change roles
+    if (!req.user.isMainAdmin) {
+      throw new AppError('Only the main admin can change user roles', 403)
+    }
+
+    // Cannot change main admin's role
+    if (user.isMainAdmin && role && role !== user.role) {
+      throw new AppError('Cannot change the main admin role', 403)
+    }
+
     if (role && ['admin', 'collector'].includes(role)) {
       user.role = role
     }

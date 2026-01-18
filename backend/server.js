@@ -27,6 +27,7 @@ import personalReportRoutes from './routes/personalReportRoutes.js'
 import adminUserRoutes from './routes/adminUserRoutes.js'
 import adminMemberRoutes from './routes/adminMemberRoutes.js'
 import adminSettingsRoutes from './routes/adminSettingsRoutes.js'
+import registrationCodeRoutes from './routes/registrationCodeRoutes.js'
 
 const app = express()
 
@@ -104,6 +105,7 @@ app.use('/api/personal-reports', personalReportRoutes)
 app.use('/api/admin/users', adminUserRoutes)
 app.use('/api/admin/members', adminMemberRoutes)
 app.use('/api/admin/settings', adminSettingsRoutes)
+app.use('/api/admin/settings', registrationCodeRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {

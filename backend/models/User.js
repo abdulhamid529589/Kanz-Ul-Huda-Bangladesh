@@ -35,6 +35,14 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'collector'],
       default: 'collector',
     },
+    isMainAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    registrationCodeVersion: {
+      type: Number,
+      default: 1,
+    },
     status: {
       type: String,
       enum: ['active', 'inactive'],
