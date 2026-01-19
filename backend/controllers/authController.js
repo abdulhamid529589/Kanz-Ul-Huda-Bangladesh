@@ -5,7 +5,7 @@ import LoginOTP from '../models/LoginOTP.js'
 import PasswordReset from '../models/PasswordReset.js'
 import Settings from '../models/Settings.js'
 import RegistrationRequest from '../models/RegistrationRequest.js'
-import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js'
+import { generateAccessToken, generateRefreshToken, generateToken } from '../middleware/auth.js'
 import {
   asyncHandler,
   AppError,

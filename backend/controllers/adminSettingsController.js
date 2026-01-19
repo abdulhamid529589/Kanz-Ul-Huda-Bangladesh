@@ -15,8 +15,8 @@ export const getAllSettings = asyncHandler(async (req, res) => {
 
   let settings = await Settings.find(query).lean()
 
-  // Check if user is main admin
-  const isMainAdmin = req.user?.email === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+  // Check if user is main admin (use isMainAdmin flag from user object)
+  const isMainAdmin = req.user?.isMainAdmin || false
 
   // Filter out registration code settings for non-main admins
   if (!isMainAdmin) {
@@ -56,8 +56,8 @@ export const getSetting = asyncHandler(async (req, res) => {
   const isRestricted =
     setting.key && setting.key.includes('registration') && setting.key.includes('code')
 
-  // Check if user is main admin
-  const isMainAdmin = req.user?.email === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+  // Check if user is main admin (use isMainAdmin flag from user object)
+  const isMainAdmin = req.user?.isMainAdmin || false
 
   // Prevent non-main admins from accessing registration code settings
   if (isRestricted && !isMainAdmin) {
@@ -77,6 +77,17 @@ export const createOrUpdateSetting = asyncHandler(async (req, res) => {
 
   if (!key || value === undefined) {
     throw new AppError('Please provide key and value', 400)
+  }
+
+  // Check if this is a restricted setting
+  const isRestricted = key && key.includes('registration') && key.includes('code')
+
+  // Check if user is main admin (use isMainAdmin flag from user object)
+  const isMainAdmin = req.user?.isMainAdmin || false
+
+  // Prevent non-main admins from modifying registration code settings
+  if (isRestricted && !isMainAdmin) {
+    throw new AppError('Only the main admin can modify registration code settings', 403)
   }
 
   // Validate category
@@ -131,6 +142,18 @@ export const updateMultipleSettings = asyncHandler(async (req, res) => {
 
   if (!Array.isArray(settingsData) || settingsData.length === 0) {
     throw new AppError('Please provide an array of settings', 400)
+  }
+
+  // Check if user is main admin (use isMainAdmin flag from user object)
+  const isMainAdmin = req.user?.isMainAdmin || false
+
+  // Check if any setting is restricted
+  for (const settingData of settingsData) {
+    const { key } = settingData
+    const isRestricted = key && key.includes('registration') && key.includes('code')
+    if (isRestricted && !isMainAdmin) {
+      throw new AppError('Only the main admin can modify registration code settings', 403)
+    }
   }
 
   const results = {

@@ -32,6 +32,14 @@ const memberSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    facebookUrl: {
+      type: String,
+      trim: true,
+      match: [
+        /^(https?:\/\/)?(www\.)?facebook\.com\/[\w\-\.]+(\?.*)?$/i,
+        'Please enter a valid Facebook URL',
+      ],
+    },
     status: {
       type: String,
       enum: ['active', 'inactive'],

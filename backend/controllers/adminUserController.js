@@ -126,7 +126,7 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const updateUser = asyncHandler(async (req, res) => {
-  const { fullName, email, password, role, status } = req.body
+  const { fullName, email, password, role, status, registrationCodeVersion } = req.body
   const userId = req.params.id
 
   // Check if user is updating their own profile or is admin
@@ -137,6 +137,11 @@ export const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(userId)
   if (!user) {
     throw new AppError('User not found', 404)
+  }
+
+  // Check if trying to modify registrationCodeVersion without main admin access
+  if (registrationCodeVersion !== undefined && !req.user.isMainAdmin) {
+    throw new AppError('Only the main admin can modify registration code version', 403)
   }
 
   // Update allowed fields
@@ -174,6 +179,11 @@ export const updateUser = asyncHandler(async (req, res) => {
     }
     if (status && ['active', 'inactive'].includes(status)) {
       user.status = status
+    }
+
+    // Only main admin can modify registration code version
+    if (registrationCodeVersion !== undefined && typeof registrationCodeVersion === 'number') {
+      user.registrationCodeVersion = registrationCodeVersion
     }
   }
 

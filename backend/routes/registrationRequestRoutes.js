@@ -16,11 +16,14 @@ const router = express.Router()
 router.post('/submit', submitRegistrationRequest)
 router.get('/check/:email', checkEmailApproved)
 
-// Admin routes - Only main admin (administrator) can access
+// Admin routes - Protected routes (admin and above)
 router.use(protect) // Protect all routes below this
-router.use(requireMainAdmin) // Only main admin can access registration requests
 
+// Stats route - accessible to all admins (both main admin and regular admins)
 router.get('/stats/summary', getRegistrationRequestStats)
+
+// Main admin only routes
+router.use(requireMainAdmin) // Only main admin can access routes below this
 router.get('/', getRegistrationRequests)
 router.get('/:id', getRegistrationRequestById)
 router.put('/:id/approve', approveRegistrationRequest)

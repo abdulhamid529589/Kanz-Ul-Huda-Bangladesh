@@ -11,13 +11,25 @@ export const createSubmission = async (req, res) => {
   try {
     const { memberId, duroodCount, weekStartDate, notes } = req.body
 
-    // Validate
-    if (!memberId || !duroodCount) {
+    // Validate inputs
+    if (!memberId || duroodCount === undefined) {
       return res.status(400).json({
         success: false,
         message: 'Please provide member and durood count',
       })
     }
+
+    // Validate durood count is a positive number
+    const duroodCountNum = parseInt(duroodCount, 10)
+    if (isNaN(duroodCountNum) || duroodCountNum < 0 || duroodCountNum > 1000000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Durood count must be a valid number between 0 and 1,000,000',
+      })
+    }
+
+    // Sanitize notes
+    const sanitizedNotes = notes ? String(notes).trim().slice(0, 500) : undefined
 
     // Verify member exists
     const member = await Member.findById(memberId)
@@ -64,9 +76,9 @@ export const createSubmission = async (req, res) => {
       member: memberId,
       weekStartDate: week.weekStartDate,
       weekEndDate: week.weekEndDate,
-      duroodCount: parseInt(duroodCount),
+      duroodCount: duroodCountNum,
       submittedBy: req.user.id,
-      notes,
+      notes: sanitizedNotes,
     })
 
     // Populate member info
