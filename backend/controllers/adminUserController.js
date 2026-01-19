@@ -81,6 +81,26 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
     throw new AppError('Please provide username, email, fullName, and password', 400)
   }
 
+  // Validate username format (3-20 chars, alphanumeric + underscore)
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+    throw new AppError('Username must be 3-20 characters, alphanumeric and underscores only', 400)
+  }
+
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new AppError('Please provide a valid email address', 400)
+  }
+
+  // Validate password length
+  if (password.length < 8) {
+    throw new AppError('Password must be at least 8 characters', 400)
+  }
+
+  // Validate full name
+  if (fullName.trim().length < 2) {
+    throw new AppError('Full name must be at least 2 characters', 400)
+  }
+
   // Check if username exists
   if (await User.findOne({ username: username.toLowerCase() })) {
     throw new AppError('Username already exists', 400)
@@ -100,7 +120,7 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
   const user = await User.create({
     username: username.toLowerCase(),
     email: email.toLowerCase(),
-    fullName,
+    fullName: fullName.trim(),
     password,
     role,
     status: 'active',

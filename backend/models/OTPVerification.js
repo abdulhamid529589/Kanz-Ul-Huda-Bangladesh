@@ -24,7 +24,6 @@ const otpVerificationSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // Auto-delete after expiry
     },
     // Store registration data temporarily until verified
     registrationData: {

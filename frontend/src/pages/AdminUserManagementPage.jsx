@@ -59,8 +59,33 @@ const AdminUserManagementPage = () => {
   }, [fetchUsers])
 
   const handleCreateUser = async () => {
+    // Validate all required fields
     if (!formData.username || !formData.email || !formData.fullName || !formData.password) {
       showError('Please fill in all required fields')
+      return
+    }
+
+    // Validate username format (alphanumeric and underscores only)
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
+      showError('Username must be 3-20 characters, alphanumeric and underscores only')
+      return
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showError('Please enter a valid email address')
+      return
+    }
+
+    // Validate password length
+    if (formData.password.length < 8) {
+      showError('Password must be at least 8 characters')
+      return
+    }
+
+    // Validate full name (at least 2 characters)
+    if (formData.fullName.trim().length < 2) {
+      showError('Full name must be at least 2 characters')
       return
     }
 
@@ -86,11 +111,25 @@ const AdminUserManagementPage = () => {
         })
         fetchUsers()
       } else {
-        showError(res.data?.message || 'Failed to create user')
+        const errorMessage = res.data?.message || res.data?.data?.message || 'Failed to create user'
+        showError(errorMessage)
       }
     } catch (error) {
       showError(error.message || 'Failed to create user')
     }
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    // Reset form data when closing modal
+    setFormData({
+      username: '',
+      email: '',
+      fullName: '',
+      password: '',
+      role: 'collector',
+    })
+    setEditingUser(null)
   }
 
   const handleChangeRole = async (userId, newRole) => {
@@ -406,8 +445,18 @@ const AdminUserManagementPage = () => {
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="3-20 characters, alphanumeric and underscores"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+                {formData.username && !/^[a-zA-Z0-9_]{3,20}$/.test(formData.username) && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    {formData.username.length < 3
+                      ? 'Minimum 3 characters'
+                      : formData.username.length > 20
+                        ? 'Maximum 20 characters'
+                        : 'Only alphanumeric and underscores allowed'}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -418,8 +467,14 @@ const AdminUserManagementPage = () => {
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="At least 2 characters"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+                {formData.fullName && formData.fullName.trim().length < 2 && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Full name must be at least 2 characters
+                  </p>
+                )}
               </div>
 
               <div>
@@ -430,8 +485,14 @@ const AdminUserManagementPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="user@example.com"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+                {formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Please enter a valid email address
+                  </p>
+                )}
               </div>
 
               <div>
@@ -442,12 +503,18 @@ const AdminUserManagementPage = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Minimum 8 characters"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                {formData.password && formData.password.length < 8 && (
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                    Password must be at least 8 characters
-                  </p>
+                {formData.password && (
+                  <div className="mt-1 space-y-1">
+                    <div
+                      className={`text-xs ${formData.password.length >= 8 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                    >
+                      {formData.password.length >= 8 ? '✓' : '✗'} {formData.password.length} / 8
+                      characters
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -468,7 +535,7 @@ const AdminUserManagementPage = () => {
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={handleCloseModal}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel

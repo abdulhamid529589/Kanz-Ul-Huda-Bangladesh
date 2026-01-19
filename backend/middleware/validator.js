@@ -145,7 +145,7 @@ export const validateOTPRequest = [
 ]
 
 /**
- * OTP verification validation rules (for /verify-otp)
+ * OTP verification validation rules (for /verify-otp - registration)
  */
 export const validateOTPVerification = [
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
@@ -157,5 +157,68 @@ export const validateOTPVerification = [
     .withMessage('OTP must be 6 digits')
     .isNumeric()
     .withMessage('OTP must contain only numbers'),
+  validate,
+]
+
+/**
+ * Login OTP verification validation rules (for /login-verify-otp)
+ */
+export const validateLoginOTPVerification = [
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters'),
+  body('otp')
+    .trim()
+    .notEmpty()
+    .withMessage('OTP is required')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('OTP must be 6 digits')
+    .isNumeric()
+    .withMessage('OTP must contain only numbers'),
+  validate,
+]
+
+/**
+ * Login resend OTP validation rules (for /login-resend-otp)
+ */
+export const validateLoginResendOTP = [
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters'),
+  validate,
+]
+
+/**
+ * Reset password validation rules
+ */
+export const validateResetPassword = [
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('token').trim().notEmpty().withMessage('Reset token is required'),
+  body('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter (A-Z)')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter (a-z)')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain at least one number (0-9)'),
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Confirm password is required')
+    .custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error('Passwords do not match')
+      }
+      return true
+    }),
   validate,
 ]
