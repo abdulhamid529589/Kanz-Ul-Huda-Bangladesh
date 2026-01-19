@@ -21,14 +21,36 @@ router.use(protect)
 // All routes below require admin role
 router.use(authorize('admin'))
 
+// Middleware to check main admin for restricted settings
+const checkMainAdminForRestrictedSettings = (req, res, next) => {
+  const { settings: settingsData } = req.body
+  const isMainAdmin = req.user?.isMainAdmin
+
+  // Check if trying to update registration code settings without being main admin
+  if (settingsData) {
+    const hasRestrictedSettings = settingsData.some(
+      (s) => s.key && s.key.includes('registration') && s.key.includes('code'),
+    )
+
+    if (hasRestrictedSettings && !isMainAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only main admin can modify registration code settings',
+      })
+    }
+  }
+
+  next()
+}
+
 // Get all settings
 router.get('/', getAllSettings)
 
 // Reset settings to defaults
 router.post('/reset/defaults', resetToDefaults)
 
-// Update multiple settings at once
-router.put('/batch', updateMultipleSettings)
+// Update multiple settings at once - with restricted settings check
+router.put('/batch', checkMainAdminForRestrictedSettings, updateMultipleSettings)
 
 // Get single setting
 router.get('/:key', getSetting)

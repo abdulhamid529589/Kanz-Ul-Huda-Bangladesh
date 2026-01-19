@@ -13,7 +13,17 @@ export const getAllSettings = asyncHandler(async (req, res) => {
   let query = {}
   if (category) query.category = category
 
-  const settings = await Settings.find(query).lean()
+  let settings = await Settings.find(query).lean()
+
+  // Check if user is main admin
+  const isMainAdmin = req.user?.email === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+
+  // Filter out registration code settings for non-main admins
+  if (!isMainAdmin) {
+    settings = settings.filter(
+      (s) => !(s.key && s.key.includes('registration') && s.key.includes('code')),
+    )
+  }
 
   // Group by category
   const grouped = {}
@@ -40,6 +50,18 @@ export const getSetting = asyncHandler(async (req, res) => {
 
   if (!setting) {
     throw new AppError('Setting not found', 404)
+  }
+
+  // Check if this is a restricted setting
+  const isRestricted =
+    setting.key && setting.key.includes('registration') && setting.key.includes('code')
+
+  // Check if user is main admin
+  const isMainAdmin = req.user?.email === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+
+  // Prevent non-main admins from accessing registration code settings
+  if (isRestricted && !isMainAdmin) {
+    throw new AppError('You do not have permission to access this setting', 403)
   }
 
   sendSuccessResponse(res, 200, 'Setting retrieved successfully', { setting })

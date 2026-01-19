@@ -23,12 +23,16 @@ async function seedAdmin() {
       process.exit(0)
     }
 
+    const adminEmail = (process.env.DEFAULT_ADMIN_EMAIL || 'admin@kanzulhuda.com').toLowerCase()
+    const isMainAdmin = adminEmail === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+
     await User.create({
       username: process.env.DEFAULT_ADMIN_USERNAME || 'admin',
       password: process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@123',
       fullName: process.env.DEFAULT_ADMIN_NAME || 'System Administrator',
-      email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@kanzulhuda.com',
+      email: adminEmail,
       role: 'admin',
+      isMainAdmin,
       status: 'active',
     })
 

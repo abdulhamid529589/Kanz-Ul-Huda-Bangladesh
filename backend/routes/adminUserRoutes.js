@@ -16,6 +16,26 @@ import {
 
 const router = express.Router()
 
+// Middleware to check if user is main admin (for role change operations)
+const checkMainAdminForRoleChange = (req, res, next) => {
+  const isMainAdmin = req.user?.email === (process.env.MAIN_ADMIN_EMAIL || '').toLowerCase()
+
+  // Allow non-role-change operations
+  if (!req.body?.role) {
+    return next()
+  }
+
+  // Restrict role changes to main admin only
+  if (!isMainAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: 'Only the main admin can change user roles',
+    })
+  }
+
+  next()
+}
+
 // All routes require authentication
 router.use(protect)
 
@@ -35,14 +55,14 @@ router.post('/', createUserAsAdmin)
 // Get single user
 router.get('/:id', getUserById)
 
-// Update user
-router.put('/:id', updateUser)
+// Update user (with role change protection)
+router.put('/:id', checkMainAdminForRoleChange, updateUser)
 
-// Promote collector to admin
-router.put('/:id/promote-to-admin', promoteToAdmin)
+// Promote collector to admin (requires main admin)
+router.put('/:id/promote-to-admin', checkMainAdminForRoleChange, promoteToAdmin)
 
-// Demote admin to collector
-router.put('/:id/demote-to-collector', demoteToCollector)
+// Demote admin to collector (requires main admin)
+router.put('/:id/demote-to-collector', checkMainAdminForRoleChange, demoteToCollector)
 
 // Deactivate user
 router.put('/:id/deactivate', deactivateUser)

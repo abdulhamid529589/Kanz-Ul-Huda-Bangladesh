@@ -295,6 +295,13 @@ export const login = asyncHandler(async (req, res) => {
   // Update last login
   user.lastLogin = new Date()
 
+  // Check if this user is the main admin (based on MAIN_ADMIN_EMAIL)
+  if (user.role === 'admin' && process.env.MAIN_ADMIN_EMAIL) {
+    user.isMainAdmin = user.email === process.env.MAIN_ADMIN_EMAIL.toLowerCase()
+  } else {
+    user.isMainAdmin = false
+  }
+
   // Generate access and refresh tokens
   const accessToken = generateAccessToken(user._id)
   const refreshToken = generateRefreshToken(user._id)
@@ -303,7 +310,11 @@ export const login = asyncHandler(async (req, res) => {
   user.refreshToken = refreshToken
   await user.save()
 
-  logger.info('User logged in', { username: user.username, userId: user._id })
+  logger.info('User logged in', {
+    username: user.username,
+    userId: user._id,
+    isMainAdmin: user.isMainAdmin,
+  })
 
   // Remove password from response
   const userResponse = user.toJSON()
@@ -325,6 +336,13 @@ export const getMe = asyncHandler(async (req, res) => {
 
   if (!user) {
     throw new AppError('User not found', 404)
+  }
+
+  // Check if this user is the main admin (based on MAIN_ADMIN_EMAIL)
+  if (user.role === 'admin' && process.env.MAIN_ADMIN_EMAIL) {
+    user.isMainAdmin = user.email === process.env.MAIN_ADMIN_EMAIL.toLowerCase()
+  } else {
+    user.isMainAdmin = false
   }
 
   sendSuccessResponse(res, 200, 'User data retrieved', { user })
