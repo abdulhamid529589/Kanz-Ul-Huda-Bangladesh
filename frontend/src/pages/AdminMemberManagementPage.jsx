@@ -59,7 +59,11 @@ const AdminMemberManagementPage = () => {
     }
 
     try {
-      const res = await apiCall('/admin/members', formData, token, 'POST')
+      const res = await apiCall(
+        '/admin/members',
+        { method: 'POST', body: JSON.stringify(formData) },
+        token,
+      )
 
       if (res.ok) {
         showSuccess('Member created successfully')
@@ -80,7 +84,11 @@ const AdminMemberManagementPage = () => {
     if (!editingMember) return
 
     try {
-      const res = await apiCall(`/admin/members/${editingMember._id}`, formData, token, 'PUT')
+      const res = await apiCall(
+        `/admin/members/${editingMember._id}`,
+        { method: 'PUT', body: JSON.stringify(formData) },
+        token,
+      )
 
       if (res.ok) {
         showSuccess('Member updated successfully')
@@ -102,7 +110,11 @@ const AdminMemberManagementPage = () => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
 
     try {
-      const res = await apiCall(`/admin/members/${memberId}`, { status: newStatus }, token, 'PUT')
+      const res = await apiCall(
+        `/admin/members/${memberId}`,
+        { method: 'PUT', body: JSON.stringify({ status: newStatus }) },
+        token,
+      )
 
       if (res.ok) {
         showSuccess(`Member ${newStatus === 'active' ? 'activated' : 'deactivated'}`)
@@ -117,7 +129,7 @@ const AdminMemberManagementPage = () => {
     if (!confirm('Are you sure you want to delete this member?')) return
 
     try {
-      const res = await apiCall(`/admin/members/${memberId}`, {}, token, 'DELETE')
+      const res = await apiCall(`/admin/members/${memberId}`, { method: 'DELETE' }, token)
 
       if (res.ok) {
         showSuccess('Member deleted successfully')
@@ -148,7 +160,11 @@ const AdminMemberManagementPage = () => {
         return
       }
 
-      const res = await apiCall('/admin/members/bulk-import', { members: lines }, token, 'POST')
+      const res = await apiCall(
+        '/admin/members/bulk-import',
+        { method: 'POST', body: JSON.stringify({ members: lines }) },
+        token,
+      )
 
       if (res.ok) {
         const result = res.data.data

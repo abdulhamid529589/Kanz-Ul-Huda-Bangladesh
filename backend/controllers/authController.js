@@ -4,6 +4,7 @@ import OTPVerification from '../models/OTPVerification.js'
 import LoginOTP from '../models/LoginOTP.js'
 import PasswordReset from '../models/PasswordReset.js'
 import Settings from '../models/Settings.js'
+import RegistrationRequest from '../models/RegistrationRequest.js'
 import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js'
 import {
   asyncHandler,
@@ -49,6 +50,17 @@ export const requestOTP = asyncHandler(async (req, res) => {
   const emailExists = await User.findOne({ email: email.toLowerCase() })
   if (emailExists) {
     throw new AppError('Email already exists', 400)
+  }
+
+  // Check if email has an approved registration request
+  const registrationRequest = await RegistrationRequest.findOne({
+    email: email.toLowerCase(),
+  })
+  if (!registrationRequest || registrationRequest.status !== 'approved') {
+    throw new AppError(
+      'Your email is not approved for registration. Please submit a registration request first.',
+      403,
+    )
   }
 
   // Generate OTP

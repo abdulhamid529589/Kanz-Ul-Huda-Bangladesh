@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CheckCircle, Clock, Calendar, TrendingUp, BarChart3 } from 'lucide-react'
+import { CheckCircle, Clock, Calendar, TrendingUp, BarChart3, Bell, UserCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
 
 const Dashboard = () => {
-  const { token } = useAuth()
+  const { token, isMainAdmin } = useAuth()
   const [stats, setStats] = useState(null)
   const [recentSubmissions, setRecentSubmissions] = useState([])
   const [pendingMembers, setPendingMembers] = useState([])
+  const [pendingRegistrationRequests, setPendingRegistrationRequests] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchDashboardData = useCallback(async () => {
@@ -16,21 +17,31 @@ const Dashboard = () => {
 
     setLoading(true)
     try {
-      const [statsRes, recentRes, pendingRes] = await Promise.all([
+      const apiCalls = [
         apiCall('/stats/dashboard', {}, token),
         apiCall('/submissions/recent?limit=10', {}, token),
         apiCall('/submissions/pending', {}, token),
-      ])
+      ]
 
-      if (statsRes.ok) setStats(statsRes.data.data)
-      if (recentRes.ok) setRecentSubmissions(recentRes.data.data)
-      if (pendingRes.ok) setPendingMembers(pendingRes.data.data.pendingMembers)
+      // Add registration requests API call only for main admin
+      if (isMainAdmin) {
+        apiCalls.push(apiCall('/registration-requests?status=pending&limit=5', {}, token))
+      }
+
+      const responses = await Promise.all(apiCalls)
+
+      if (responses[0].ok) setStats(responses[0].data.data)
+      if (responses[1].ok) setRecentSubmissions(responses[1].data.data)
+      if (responses[2].ok) setPendingMembers(responses[2].data.data.pendingMembers)
+      if (isMainAdmin && responses[3]?.ok) {
+        setPendingRegistrationRequests(responses[3].data.data.requests || [])
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, isMainAdmin])
 
   useEffect(() => {
     fetchDashboardData()
@@ -46,6 +57,30 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Pending Registration Requests Notification (Main Admin Only) */}
+      {isMainAdmin && pendingRegistrationRequests.length > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-200">
+                {pendingRegistrationRequests.length} Pending Registration Request
+                {pendingRegistrationRequests.length !== 1 ? 's' : ''}
+              </h3>
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                New registration requests are waiting for your approval
+              </p>
+            </div>
+          </div>
+          <a
+            href="#admin-settings"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
+          >
+            Review
+          </a>
+        </div>
+      )}
+
       {/* Current Week Summary */}
       {stats && (
         <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 text-white">
@@ -151,6 +186,45 @@ const Dashboard = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pending Registration Requests (Main Admin Only) */}
+        {isMainAdmin && (
+          <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
+            <div className="card-header">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                <UserCheck className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" />
+                Pending Registration Requests ({pendingRegistrationRequests.length})
+              </h3>
+            </div>
+            <div className="max-h-96 overflow-y-auto scrollbar-custom">
+              {pendingRegistrationRequests.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-2 text-primary-500 dark:text-primary-400" />
+                  <p>No pending registration requests!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingRegistrationRequests.map((request) => (
+                    <div
+                      key={request._id}
+                      className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-30 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800 dark:text-white">{request.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{request.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Pending Members */}
         <div className="card bg-white dark:bg-gray-800 border-0 dark:border dark:border-gray-700">
           <div className="card-header">

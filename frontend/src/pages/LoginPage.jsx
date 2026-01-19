@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 import ForgotPasswordModal from '../components/ForgotPasswordModal'
 
-const LoginPage = ({ onRegisterClick }) => {
+const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -140,16 +140,27 @@ const LoginPage = ({ onRegisterClick }) => {
             )}
           </button>
 
-          {/* Register Link */}
-          <div className="text-center">
+          {/* Register Links */}
+          <div className="space-y-3 text-center">
             <p className="text-sm text-gray-200">
               Not a member yet?{' '}
               <button
-                onClick={onRegisterClick}
+                onClick={onRegistrationRequestClick}
                 className="text-primary-300 hover:text-primary-200 font-medium transition-colors disabled:opacity-50"
                 disabled={loading}
               >
-                Register as Dawah Team Member
+                Submit Registration Request
+              </button>
+            </p>
+            <p className="text-xs text-gray-300">or</p>
+            <p className="text-sm text-gray-200">
+              Already approved?{' '}
+              <button
+                onClick={onRegisterClick}
+                className="text-secondary-300 hover:text-secondary-200 font-medium transition-colors disabled:opacity-50"
+                disabled={loading}
+              >
+                Create Account
               </button>
             </p>
           </div>

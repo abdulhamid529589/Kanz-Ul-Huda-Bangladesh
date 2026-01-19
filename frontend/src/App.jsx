@@ -14,6 +14,7 @@ import ProfileSettingsPage from './pages/ProfileSettingsPage'
 import AdminUserManagementPage from './pages/AdminUserManagementPage'
 import AdminMemberManagementPage from './pages/AdminMemberManagementPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
+import RegistrationRequestPage from './pages/RegistrationRequestPage'
 import Layout from './components/Layout'
 
 // Main App Content
@@ -22,6 +23,7 @@ const AppContent = () => {
   const [currentPage, setCurrentPage] = useState('dashboard')
   const [showRegister, setShowRegister] = useState(false)
   const [showResetPassword, setShowResetPassword] = useState(false)
+  const [showRegistrationRequest, setShowRegistrationRequest] = useState(false)
 
   // Loading state
   if (loading) {
@@ -51,10 +53,15 @@ const AppContent = () => {
       )
     }
 
-    return showRegister ? (
+    return showRegistrationRequest ? (
+      <RegistrationRequestPage onSuccess={() => setShowRegistrationRequest(false)} />
+    ) : showRegister ? (
       <RegisterPage2FA onBackToLogin={() => setShowRegister(false)} />
     ) : (
-      <LoginPage onRegisterClick={() => setShowRegister(true)} />
+      <LoginPage
+        onRegisterClick={() => setShowRegister(true)}
+        onRegistrationRequestClick={() => setShowRegistrationRequest(true)}
+      />
     )
   }
 

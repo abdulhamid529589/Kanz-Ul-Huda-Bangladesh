@@ -1,5 +1,5 @@
 import express from 'express'
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import { protect } from '../middleware/auth.js'
 import {
   register,
@@ -51,7 +51,7 @@ const otpLimiter = rateLimit({
   message: { success: false, message: 'Too many OTP requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req, res) => req.body.email || req.ip,
+  keyGenerator: (req, res) => req.body.email || ipKeyGenerator(req, res),
 })
 
 // Rate limiter for password reset requests
@@ -61,7 +61,7 @@ const resetLimiter = rateLimit({
   message: { success: false, message: 'Too many password reset requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req, res) => req.body.email || req.ip,
+  keyGenerator: (req, res) => req.body.email || ipKeyGenerator(req, res),
 })
 
 // Public routes

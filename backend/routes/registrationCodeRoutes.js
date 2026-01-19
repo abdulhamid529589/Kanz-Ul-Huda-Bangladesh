@@ -1,5 +1,5 @@
 import express from 'express'
-import { protect, authorize } from '../middleware/auth.js'
+import { protect, requireMainAdmin } from '../middleware/auth.js'
 import {
   changeRegistrationCode,
   getRegistrationCodeVersion,
@@ -14,6 +14,6 @@ router.get('/registration-code-version', getRegistrationCodeVersion)
 router.use(protect)
 
 // Change registration code (Main Admin only)
-router.put('/change-registration-code', authorize('admin'), changeRegistrationCode)
+router.put('/change-registration-code', requireMainAdmin, changeRegistrationCode)
 
 export default router

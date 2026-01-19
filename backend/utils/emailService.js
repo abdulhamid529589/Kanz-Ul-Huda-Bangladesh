@@ -209,10 +209,166 @@ export const sendPasswordResetEmail = async (email, resetLink, fullName = 'User'
   }
 }
 
+/**
+ * Send registration request confirmation email to user
+ */
+export const sendRegistrationRequestConfirmationEmail = async (email, name) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Kanz ul Huda - Registration Request Received',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+          <div style="background-color: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #333; margin-bottom: 20px;">📋 Registration Request Received</h2>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 15px;">
+              Assalamu Alaikum ${name},
+            </p>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 15px;">
+              Thank you for submitting your registration request to Kanz ul Huda. Your request has been received and is now under review by our administrators.
+            </p>
+
+            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+              <p style="color: #666; margin: 5px 0;"><strong>Name:</strong> ${name}</p>
+              <p style="color: #666; margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="color: #666; margin: 5px 0;"><strong>Status:</strong> <span style="color: #f59e0b; font-weight: bold;">Pending</span></p>
+            </div>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 25px;">
+              You will receive an email notification once your request has been reviewed. Please be patient while our team verifies your information.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              © 2026 Kanz ul Huda. All rights reserved.
+            </p>
+          </div>
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    logger.info('Registration request confirmation email sent', { email })
+  } catch (error) {
+    logger.error('Failed to send registration request confirmation email', {
+      email,
+      error: error.message,
+    })
+    throw error
+  }
+}
+
+/**
+ * Send registration approval email to user
+ */
+export const sendRegistrationApprovedEmail = async (email, name) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Kanz ul Huda - Registration Approved! ✅',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+          <div style="background-color: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #10b981; margin-bottom: 20px;">✅ Registration Approved!</h2>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 15px;">
+              Assalamu Alaikum ${name},
+            </p>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 25px;">
+              Great news! Your registration request has been approved by our administrators. You can now proceed with creating your account.
+            </p>
+
+            <div style="background-color: #ecfdf5; padding: 20px; border-left: 4px solid #10b981; margin-bottom: 25px;">
+              <p style="color: #047857; font-size: 16px; margin: 0;">
+                <strong>Next Step:</strong> Visit our website and complete your registration using the registration code provided by the administrator.
+              </p>
+            </div>
+
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">
+              If you have any questions, please contact our support team.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              © 2026 Kanz ul Huda. All rights reserved.
+            </p>
+          </div>
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    logger.info('Registration approval email sent', { email })
+  } catch (error) {
+    logger.error('Failed to send registration approval email', { email, error: error.message })
+    throw error
+  }
+}
+
+/**
+ * Send registration rejection email to user
+ */
+export const sendRegistrationRejectedEmail = async (email, name, reason) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Kanz ul Huda - Registration Request Update',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+          <div style="background-color: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #ef4444; margin-bottom: 20px;">Registration Request Update</h2>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 15px;">
+              Assalamu Alaikum ${name},
+            </p>
+
+            <p style="color: #666; font-size: 16px; margin-bottom: 25px;">
+              Thank you for your registration request. Unfortunately, your request could not be approved at this time.
+            </p>
+
+            <div style="background-color: #fef2f2; padding: 20px; border-left: 4px solid #ef4444; margin-bottom: 25px;">
+              <p style="color: #7f1d1d; font-size: 14px; margin: 0;">
+                <strong>Reason:</strong> ${reason}
+              </p>
+            </div>
+
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">
+              If you believe this is a mistake or would like to resubmit your application, please contact our support team.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              © 2026 Kanz ul Huda. All rights reserved.
+            </p>
+          </div>
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    logger.info('Registration rejection email sent', { email })
+  } catch (error) {
+    logger.error('Failed to send registration rejection email', { email, error: error.message })
+    throw error
+  }
+}
+
 export default {
   initializeEmailService,
   generateOTP,
   sendOTPEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendRegistrationRequestConfirmationEmail,
+  sendRegistrationApprovedEmail,
+  sendRegistrationRejectedEmail,
 }

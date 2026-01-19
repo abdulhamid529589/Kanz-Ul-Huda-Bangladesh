@@ -62,6 +62,17 @@ export const authorize = (...roles) => {
   }
 }
 
+// Main admin (administrator) only access
+export const requireMainAdmin = (req, res, next) => {
+  if (!req.user.isMainAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: 'This action is only available to the main administrator',
+    })
+  }
+  next()
+}
+
 // Generate Access Token (short-lived)
 export const generateAccessToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
