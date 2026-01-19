@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, Search, ChevronDown } from 'lucide-react'
 import { apiCall } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { showError, showSuccess } from '../utils/toast'
 
 const RegistrationRequestsPanel = ({ onStatsChange }) => {
   const { token } = useAuth()
@@ -72,17 +73,18 @@ const RegistrationRequestsPanel = ({ onStatsChange }) => {
       if (response.ok) {
         fetchRequests()
         fetchStats()
+        showSuccess('Request approved successfully')
       } else {
-        alert('Failed to approve request: ' + (response.data?.message || 'Unknown error'))
+        showError('Failed to approve request: ' + (response.data?.message || 'Unknown error'))
       }
     } catch (error) {
-      alert('Failed to approve request: ' + error.message)
+      showError('Failed to approve request: ' + error.message)
     }
   }
 
   const handleReject = async (id) => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason')
+      showError('Please provide a rejection reason')
       return
     }
 
@@ -103,11 +105,12 @@ const RegistrationRequestsPanel = ({ onStatsChange }) => {
         setRejectionReason('')
         fetchRequests()
         fetchStats()
+        showSuccess('Request rejected successfully')
       } else {
-        alert('Failed to reject request: ' + (response.data?.message || 'Unknown error'))
+        showError('Failed to reject request: ' + (response.data?.message || 'Unknown error'))
       }
     } catch (error) {
-      alert('Failed to reject request: ' + error.message)
+      showError('Failed to reject request: ' + error.message)
     }
   }
 

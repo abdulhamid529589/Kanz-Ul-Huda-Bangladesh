@@ -332,19 +332,33 @@ const AdminUserManagementPage = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleToggleStatus(user._id, user.status)}
-                          title={user.status === 'active' ? 'Deactivate' : 'Activate'}
+                          disabled={!isMainAdmin}
+                          title={
+                            !isMainAdmin
+                              ? 'Only main admin can edit users'
+                              : user.status === 'active'
+                                ? 'Deactivate'
+                                : 'Activate'
+                          }
                           className={`p-2 rounded-lg transition-colors ${
-                            user.status === 'active'
-                              ? 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900'
-                              : 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900'
+                            !isMainAdmin
+                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                              : user.status === 'active'
+                                ? 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900'
+                                : 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900'
                           }`}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user._id)}
-                          title="Delete"
-                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
+                          disabled={!isMainAdmin}
+                          title={!isMainAdmin ? 'Only main admin can delete users' : 'Delete'}
+                          className={`p-2 rounded-lg transition-colors ${
+                            !isMainAdmin
+                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                              : 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900'
+                          }`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

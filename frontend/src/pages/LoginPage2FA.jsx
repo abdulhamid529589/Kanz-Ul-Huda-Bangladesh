@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Mail, ArrowLeft, LogIn } from 'lucide-react'
 import { apiCall } from '../utils/api'
+import { showSuccess, showError } from '../utils/toast'
 
 const LoginPage2FA = ({ onBackToOldLogin, onRegisterClick }) => {
   const [step, setStep] = useState('credentials') // 'credentials' or 'otp'
@@ -104,7 +105,7 @@ const LoginPage2FA = ({ onBackToOldLogin, onRegisterClick }) => {
 
       if (ok) {
         setError('')
-        alert('New OTP sent to your email')
+        showSuccess('New OTP sent to your email')
       } else {
         setError(data.message || 'Failed to resend OTP')
       }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Plus, Eye, Edit, Trash2, X, Phone, MapPin, User } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { apiCall } from '../utils/api'
 import { showError, showSuccess, confirmAction } from '../utils/toast'
@@ -85,6 +86,7 @@ const MembersPage = () => {
       email: '',
       city: '',
       country: '',
+      facebookUrl: '',
       status: 'active',
     })
     setFormErrors({})
@@ -569,6 +571,25 @@ const MembersPage = () => {
                 {formErrors.country && (
                   <p className="text-red-500 text-xs mt-1">{formErrors.country}</p>
                 )}
+              </div>
+
+              {/* Facebook URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Facebook URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  name="facebookUrl"
+                  value={formData.facebookUrl}
+                  onChange={handleInputChange}
+                  disabled={modal.type === 'view'}
+                  className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  placeholder="https://facebook.com/yourprofile"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Format: https://facebook.com/username or https://facebook.com/profile.php?id=...
+                </p>
               </div>
 
               {/* Status */}

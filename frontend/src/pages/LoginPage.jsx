@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
+import { motion } from 'framer-motion'
 import ForgotPasswordModal from '../components/ForgotPasswordModal'
 
 const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
@@ -42,133 +43,210 @@ const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-secondary-900 relative overflow-hidden flex items-center justify-center p-3 sm:p-4">
       {/* Animated background elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      <div
-        className="absolute top-0 right-0 w-96 h-96 bg-secondary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
-        style={{ animationDelay: '2s' }}
-      ></div>
-      <div
-        className="absolute bottom-0 left-1/2 w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
-        style={{ animationDelay: '4s' }}
-      ></div>
+      <motion.div
+        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+      ></motion.div>
+      <motion.div
+        animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
+        transition={{ duration: 8, repeat: Infinity, delay: 2 }}
+        className="absolute top-0 right-0 w-96 h-96 bg-secondary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+      ></motion.div>
+      <motion.div
+        animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+        transition={{ duration: 8, repeat: Infinity, delay: 4 }}
+        className="absolute bottom-0 left-1/2 w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+      ></motion.div>
 
       {/* Content */}
-      <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-10 w-full max-w-md border border-white/20 hover:border-white/40 transition-all duration-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 bg-white/10 backdrop-blur-2xl rounded-3xl sm:rounded-3xl shadow-2xl p-6 sm:p-10 w-full max-w-md border border-white/20 hover:border-white/40 transition-all duration-300"
+      >
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-10">
-          <div className="inline-block p-3 sm:p-4 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full mb-4 sm:mb-6 shadow-lg">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8 sm:mb-10"
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="inline-block p-3 sm:p-4 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full mb-4 sm:mb-6 shadow-2xl"
+          >
             <div className="text-4xl sm:text-5xl">🕌</div>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 sm:mb-3">Kanz ul Huda</h1>
-          <p className="text-sm sm:text-base text-gray-200">Durood Collection System</p>
-        </div>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-3xl sm:text-4xl font-bold text-primary-600 mb-2 sm:mb-3"
+          >
+            Kanz ul Huda Bangladesh
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-sm sm:text-base text-white text-bold font-medium"
+          >
+            Durood Collection System
+          </motion.p>
+        </motion.div>
 
         {/* Login Form */}
-        <div className="space-y-6">
+        <motion.div className="space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="alert-error text-sm backdrop-blur-sm bg-red-500/20 border border-red-500/50">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="alert-error text-sm bg-red-100 border border-red-400 rounded-xl text-red-800"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
 
           {/* Username Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Username</label>
-            <input
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <label className="block text-sm font-semibold text-gray mb-3">Username</label>
+            <motion.input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-primary-500 focus:bg-white transition-all duration-200 text-base sm:text-base font-medium"
               placeholder="Enter your username"
               disabled={loading}
               autoFocus
+              whileFocus={{ scale: 1.02 }}
             />
-          </div>
+          </motion.div>
 
           {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Password</label>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <label className="block text-sm font-semibold text-gray mb-3">Password</label>
             <div className="relative">
-              <input
+              <motion.input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
+                className="w-full px-4 py-3 pr-12 bg-white border-2 border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-primary-500 focus:bg-white transition-all duration-200 text-base sm:text-base font-medium"
                 placeholder="Enter your password"
                 disabled={loading}
+                whileFocus={{ scale: 1.02 }}
               />
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
+              </motion.button>
             </div>
-            <div className="mt-3 text-right">
-              <button
+            <motion.div className="mt-3 text-right">
+              <motion.button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
                 disabled={loading}
-                className="text-sm text-primary-300 hover:text-primary-200 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ x: 5 }}
+                className="text-sm text-primary-600 hover:text-primary-700 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Forgot Password?
-              </button>
-            </div>
-          </div>
+              </motion.button>
+            </motion.div>
+          </motion.div>
 
           {/* Submit Button */}
-          <button
+          <motion.button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full mt-8 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full mt-8 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl"
           >
             {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="spinner w-5 h-5 mr-2"></div>
+              <div className="flex items-center justify-center gap-2">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="spinner w-5 h-5"
+                ></motion.div>
                 Logging in...
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-2">
+              <motion.div
+                className="flex items-center justify-center gap-2"
+                whileHover={{ gap: 8 }}
+              >
                 <LogIn className="w-5 h-5" />
                 Login
-              </div>
+              </motion.div>
             )}
-          </button>
+          </motion.button>
 
           {/* Register Links */}
-          <div className="space-y-3 text-center">
+          <motion.div
+            className="space-y-3 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
             <p className="text-sm text-gray-200">
               Not a member yet?{' '}
-              <button
+              <motion.button
                 onClick={onRegistrationRequestClick}
-                className="text-primary-300 hover:text-primary-200 font-medium transition-colors disabled:opacity-50"
+                whileHover={{ color: '#86efac' }}
+                className="text-primary-300 hover:text-primary-200 font-semibold transition-colors disabled:opacity-50"
                 disabled={loading}
               >
                 Submit Registration Request
-              </button>
+              </motion.button>
             </p>
             <p className="text-xs text-gray-300">or</p>
             <p className="text-sm text-gray-200">
               Already approved?{' '}
-              <button
+              <motion.button
                 onClick={onRegisterClick}
-                className="text-secondary-300 hover:text-secondary-200 font-medium transition-colors disabled:opacity-50"
+                whileHover={{ color: '#fbbf24' }}
+                className="text-secondary-300 hover:text-secondary-200 font-semibold transition-colors disabled:opacity-50"
                 disabled={loading}
               >
                 Create Account
-              </button>
+              </motion.button>
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-300 mt-8">Digital Dawah Team Portal</p>
-      </div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center text-sm text-gray-300 mt-8 font-medium"
+        >
+          Digital Dawah Team Portal
+        </motion.p>
+      </motion.div>
 
       {/* Forgot Password Modal */}
       <ForgotPasswordModal

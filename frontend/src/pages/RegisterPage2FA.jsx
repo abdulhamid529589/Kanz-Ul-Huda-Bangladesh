@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { UserPlus, Mail, ArrowLeft } from 'lucide-react'
+import { UserPlus, Mail, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { apiCall } from '../utils/api'
+import { showSuccess } from '../utils/toast'
 
 const RegisterPage2FA = ({ onBackToLogin }) => {
   const [step, setStep] = useState('form') // 'form' or 'otp'
@@ -16,6 +17,8 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
@@ -158,7 +161,7 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
       if (ok) {
         setError('')
         // Show success message
-        alert('New OTP sent to your email')
+        showSuccess('New OTP sent to your email')
       } else {
         setError(data.message || 'Failed to resend OTP')
       }
@@ -249,15 +252,25 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-100 mb-2">Password *</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
-                placeholder="Minimum 8 characters (A-Z, a-z, 0-9)"
-                disabled={loading}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
+                  placeholder="Minimum 8 characters (A-Z, a-z, 0-9)"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             {/* Confirm Password */}
@@ -265,15 +278,29 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
               <label className="block text-sm font-medium text-gray-100 mb-2">
                 Confirm Password *
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
-                placeholder="Re-enter your password"
-                disabled={loading}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
+                  placeholder="Re-enter your password"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Registration Code */}
