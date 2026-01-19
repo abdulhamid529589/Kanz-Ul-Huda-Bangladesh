@@ -44,7 +44,6 @@ const registrationRequestSchema = new mongoose.Schema(
 )
 
 // Index for faster queries
-registrationRequestSchema.index({ email: 1 })
 registrationRequestSchema.index({ status: 1 })
 registrationRequestSchema.index({ rejectedAt: 1 })
 

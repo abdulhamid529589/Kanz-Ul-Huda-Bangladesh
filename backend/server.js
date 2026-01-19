@@ -4,11 +4,11 @@ import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import morgan from 'morgan'
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import dotenv from 'dotenv'
 import { DB_NAME } from './constants.js'
 
-// Load environment variables
+// Load environment variables from .env file
 dotenv.config()
 
 // Import utilities
@@ -32,6 +32,10 @@ import registrationCodeRoutes from './routes/registrationCodeRoutes.js'
 import registrationRequestRoutes from './routes/registrationRequestRoutes.js'
 
 const app = express()
+
+// Trust proxy configuration for Render deployment
+// This allows Express to trust the X-Forwarded-* headers from Render's proxy
+app.set('trust proxy', 1)
 
 // Initialize email service
 initializeEmailService()
@@ -66,9 +70,10 @@ const generalLimiter = rateLimit({
   message: { success: false, message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: ipKeyGenerator, // Use library's IPv6-safe generator
 })
 
-// Stricter rate limiting for auth endpoints
+// Stricter rate limiting for auth endpoints (disabled on Render - use auth-specific limiters)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // 10 login attempts per 15 minutes
@@ -76,6 +81,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Only count failed attempts
+  keyGenerator: ipKeyGenerator, // Use library's IPv6-safe generator
 })
 
 // Rate limiting is handled in authRoutes.js
