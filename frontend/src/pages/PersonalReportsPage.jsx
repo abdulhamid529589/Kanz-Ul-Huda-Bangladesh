@@ -239,11 +239,11 @@ const PersonalReportsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-3 sm:px-4 md:px-0">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">My Reports</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">My Reports</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mt-1">
           Generate and export your personal weekly and monthly Durood reports
         </p>
       </motion.div>
@@ -256,21 +256,21 @@ const PersonalReportsPage = () => {
         transition={{ delay: 0.1 }}
       >
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Generate Report
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Report Type Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Report Type
               </label>
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
               >
                 <option value="weekly">Weekly Report</option>
                 <option value="monthly">Monthly Report</option>
@@ -279,14 +279,14 @@ const PersonalReportsPage = () => {
 
             {/* Date Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {reportType === 'weekly' ? 'Select Week (any day in week)' : 'Select Month'}
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+                {reportType === 'weekly' ? 'Select Week' : 'Select Month'}
               </label>
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
@@ -294,7 +294,7 @@ const PersonalReportsPage = () => {
             <div className="flex items-end">
               <button
                 onClick={fetchReportData}
-                className="w-full px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium"
+                className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium"
                 disabled={loading}
               >
                 {loading ? 'Loading...' : 'Generate Report'}

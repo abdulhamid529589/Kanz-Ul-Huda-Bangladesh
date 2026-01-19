@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { UserPlus, ArrowLeft } from 'lucide-react'
+import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
 const RegisterPage = ({ onBackToLogin }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +13,8 @@ const RegisterPage = ({ onBackToLogin }) => {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { register } = useAuth()
 
   const handleChange = (e) => {
@@ -146,15 +148,25 @@ const RegisterPage = ({ onBackToLogin }) => {
           {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="input-field text-base sm:text-base"
-              placeholder="Min 8 characters with uppercase, lowercase, number"
-              disabled={loading}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="input-field pr-12 text-base sm:text-base"
+                placeholder="Min 8 characters with uppercase, lowercase, number"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             <p className="text-xs text-gray-500 mt-1">
               Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number
             </p>
@@ -165,15 +177,25 @@ const RegisterPage = ({ onBackToLogin }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password *
             </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className="input-field text-base sm:text-base"
-              placeholder="Re-enter your password"
-              disabled={loading}
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="input-field pr-12 text-base sm:text-base"
+                placeholder="Re-enter your password"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           {/* Registration Code */}

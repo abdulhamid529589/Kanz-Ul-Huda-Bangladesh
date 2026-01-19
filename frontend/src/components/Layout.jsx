@@ -88,8 +88,7 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
               >
                 🕌
               </motion.span>
-              <span className="hidden xs:inline">Kanz ul Huda</span>
-              <span className="xs:hidden">Kanz ul Huda</span>
+              <span className="hidden sm:inline">Kanz ul Huda</span>
             </motion.h1>
           </div>
 

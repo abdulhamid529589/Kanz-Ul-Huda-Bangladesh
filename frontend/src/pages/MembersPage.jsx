@@ -197,8 +197,8 @@ const MembersPage = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="card dark:bg-gray-800">
-        <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
+      <div className="card dark:bg-gray-800 px-3 sm:px-4 md:px-6">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -207,15 +207,15 @@ const MembersPage = () => {
                 placeholder="Search by name or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-9 sm:pl-10 text-sm sm:text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input-field pl-9 sm:pl-10 text-xs sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 w-full"
               />
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="input-field w-auto dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="input-field flex-1 min-w-[110px] text-xs sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -224,7 +224,7 @@ const MembersPage = () => {
             <select
               value={filterCountry}
               onChange={(e) => setFilterCountry(e.target.value)}
-              className="input-field w-auto dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="input-field flex-1 min-w-[120px] text-xs sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="">All Countries</option>
               <option value="Bangladesh">Bangladesh</option>
@@ -236,7 +236,7 @@ const MembersPage = () => {
             <select
               value={filterCreatedBy}
               onChange={(e) => setFilterCreatedBy(e.target.value)}
-              className="input-field w-auto dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="input-field flex-1 min-w-[130px] text-xs sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="">All Creators</option>
               {users.map((u) => (
