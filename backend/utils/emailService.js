@@ -362,6 +362,76 @@ export const sendRegistrationRejectedEmail = async (email, name, reason) => {
   }
 }
 
+/**
+ * Send email verification link for admin-created users
+ */
+export const sendAdminCreatedUserVerificationEmail = async (
+  email,
+  fullName = 'User',
+  verificationToken,
+) => {
+  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email/${verificationToken}`
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="margin: 0;">Welcome to Kanz-Ul-Huda</h1>
+      </div>
+
+      <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p>Hello <strong>${fullName}</strong>,</p>
+
+        <p>An administrator has created an account for you on Kanz-Ul-Huda. To activate your account and get started, please verify your email address by clicking the link below:</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationUrl}" style="background-color: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+            Verify Email Address
+          </a>
+        </div>
+
+        <p style="color: #666; font-size: 14px;">Or copy and paste this link in your browser:</p>
+        <p style="background-color: white; padding: 10px; border-left: 3px solid #667eea; word-break: break-all; color: #333;">
+          ${verificationUrl}
+        </p>
+
+        <div style="background-color: #fff3cd; border-left: 3px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin: 0; color: #856404;">
+            <strong>Important:</strong> This verification link will expire in 7 days. After that, please contact your administrator to request a new verification email.
+          </p>
+        </div>
+
+        <p style="color: #666; font-size: 14px;">
+          If you did not expect to receive this email or have any questions, please contact your administrator.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">
+          This is an automated email. Please do not reply directly.
+        </p>
+      </div>
+    </div>
+  `
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `${fullName}, please verify your email for Kanz-Ul-Huda`,
+    html: htmlContent,
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions)
+    logger.info('Admin-created user verification email sent', { email, messageId: info.messageId })
+    return info
+  } catch (error) {
+    logger.error('Failed to send admin-created user verification email', {
+      email,
+      error: error.message,
+    })
+    throw error
+  }
+}
+
 export default {
   initializeEmailService,
   generateOTP,
@@ -371,4 +441,5 @@ export default {
   sendRegistrationRequestConfirmationEmail,
   sendRegistrationApprovedEmail,
   sendRegistrationRejectedEmail,
+  sendAdminCreatedUserVerificationEmail,
 }

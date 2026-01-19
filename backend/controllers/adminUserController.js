@@ -1,8 +1,11 @@
 import User from '../models/User.js'
+import AdminUserEmailVerification from '../models/AdminUserEmailVerification.js'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { asyncHandler, AppError, sendSuccessResponse } from '../utils/errorHandler.js'
 import logger from '../utils/logger.js'
 import { MAIN_ADMIN_EMAIL } from '../constants.js'
+import { sendAdminCreatedUserVerificationEmail } from '../utils/emailService.js'
 
 /**
  * @desc    Get all users (admin only)
@@ -125,19 +128,52 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
     role,
     status: 'active',
     createdBy: req.user._id,
+    createdByAdmin: true,
+    emailVerified: false,
   })
+
+  // Generate email verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex')
+
+  // Create email verification record
+  const verificationRecord = await AdminUserEmailVerification.create({
+    userId: user._id,
+    email: email.toLowerCase(),
+    verificationToken,
+    createdBy: req.user._id,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+  })
+
+  // Send verification email
+  try {
+    await sendAdminCreatedUserVerificationEmail(email, fullName, verificationToken)
+  } catch (error) {
+    // Delete user and verification if email fails
+    await User.deleteOne({ _id: user._id })
+    await AdminUserEmailVerification.deleteOne({ _id: verificationRecord._id })
+    logger.error('Failed to send verification email for admin-created user', {
+      email,
+      error: error.message,
+    })
+    throw new AppError('Failed to send verification email. User creation cancelled.', 500)
+  }
 
   const userResponse = user.toObject()
   delete userResponse.password
   delete userResponse.refreshToken
+  delete userResponse.emailVerificationToken
 
-  logger.info('User created by admin', {
+  logger.info('User created by admin with email verification required', {
     adminId: req.user._id,
     newUserId: user._id,
     role,
+    email: user.email,
   })
 
-  sendSuccessResponse(res, 201, 'User created successfully', { user: userResponse })
+  sendSuccessResponse(res, 201, 'User created successfully. Verification email sent.', {
+    user: userResponse,
+    message: 'User must verify their email within 7 days to activate their account',
+  })
 })
 
 /**
@@ -433,5 +469,137 @@ export const getUserStats = asyncHandler(async (req, res) => {
       active: activeUsers,
       inactive: inactiveUsers,
     },
+  })
+})
+
+/**
+ * @desc    Verify email for admin-created users
+ * @route   POST /api/admin/users/verify-email/:token
+ * @access  Public (token-based)
+ */
+export const verifyAdminCreatedUserEmail = asyncHandler(async (req, res) => {
+  const { token } = req.params
+
+  if (!token) {
+    throw new AppError('Verification token is required', 400)
+  }
+
+  // Find verification record
+  const verification = await AdminUserEmailVerification.findOne({
+    verificationToken: token,
+  })
+
+  if (!verification) {
+    throw new AppError('Invalid or expired verification token', 400)
+  }
+
+  // Check if already verified
+  if (verification.isVerified) {
+    throw new AppError('Email already verified', 400)
+  }
+
+  // Check if expired
+  if (new Date() > verification.expiresAt) {
+    throw new AppError('Verification token has expired. Please request a new one.', 400)
+  }
+
+  // Update user email verified status
+  const user = await User.findByIdAndUpdate(
+    verification.userId,
+    { emailVerified: true, emailVerificationToken: null },
+    { new: true },
+  )
+
+  if (!user) {
+    throw new AppError('User not found', 404)
+  }
+
+  // Mark verification as complete
+  verification.isVerified = true
+  verification.verifiedAt = new Date()
+  await verification.save()
+
+  logger.info('Email verified for admin-created user', {
+    userId: user._id,
+    email: user.email,
+  })
+
+  const userResponse = user.toObject()
+  delete userResponse.password
+  delete userResponse.refreshToken
+  delete userResponse.emailVerificationToken
+
+  sendSuccessResponse(res, 200, 'Email verified successfully. Account is now active.', {
+    user: userResponse,
+  })
+})
+
+/**
+ * @desc    Resend verification email for admin-created users
+ * @route   POST /api/admin/users/resend-verification-email
+ * @access  Public
+ */
+export const resendVerificationEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    throw new AppError('Email is required', 400)
+  }
+
+  // Find user
+  const user = await User.findOne({ email: email.toLowerCase() })
+
+  if (!user) {
+    throw new AppError('User not found', 404)
+  }
+
+  // Check if already verified
+  if (user.emailVerified) {
+    throw new AppError('Email already verified', 400)
+  }
+
+  // Check if user was created by admin
+  if (!user.createdByAdmin) {
+    throw new AppError('This user does not require email verification', 400)
+  }
+
+  // Find existing verification record
+  let verification = await AdminUserEmailVerification.findOne({ userId: user._id })
+
+  if (!verification) {
+    throw new AppError('Verification record not found', 404)
+  }
+
+  // Check attempt limit
+  if (verification.attempts >= 5) {
+    throw new AppError('Maximum resend attempts exceeded. Please contact administrator.', 429)
+  }
+
+  // Generate new token
+  const newToken = crypto.randomBytes(32).toString('hex')
+  verification.verificationToken = newToken
+  verification.attempts += 1
+  verification.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Reset expiry
+  await verification.save()
+
+  // Send email
+  try {
+    await sendAdminCreatedUserVerificationEmail(user.email, user.fullName, newToken)
+  } catch (error) {
+    logger.error('Failed to send verification email', {
+      email: user.email,
+      error: error.message,
+    })
+    throw new AppError('Failed to send verification email. Please try again.', 500)
+  }
+
+  logger.info('Verification email resent', {
+    userId: user._id,
+    email: user.email,
+    attempt: verification.attempts,
+  })
+
+  sendSuccessResponse(res, 200, 'Verification email resent successfully', {
+    message: 'Check your email for the verification link',
   })
 })

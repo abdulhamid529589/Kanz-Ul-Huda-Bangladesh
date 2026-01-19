@@ -48,6 +48,22 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      default: null,
+    },
+    emailVerificationExpiry: {
+      type: Date,
+      default: null,
+    },
+    createdByAdmin: {
+      type: Boolean,
+      default: false,
+    },
     lastLogin: {
       type: Date,
     },

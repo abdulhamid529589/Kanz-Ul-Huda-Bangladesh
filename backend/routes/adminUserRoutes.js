@@ -12,6 +12,8 @@ import {
   deactivateUser,
   reactivateUser,
   getUserStats,
+  verifyAdminCreatedUserEmail,
+  resendVerificationEmail,
 } from '../controllers/adminUserController.js'
 
 const router = express.Router()
@@ -75,5 +77,13 @@ router.get('/:id/activity-logs', getUserActivityLogs)
 
 // Delete user
 router.delete('/:id', deleteUser)
+
+// ========== EMAIL VERIFICATION ROUTES ==========
+// Public routes (no authentication required)
+// Verify email for admin-created users
+router.post('/verify-email/:token', verifyAdminCreatedUserEmail)
+
+// Resend verification email
+router.post('/resend-verification-email', resendVerificationEmail)
 
 export default router
