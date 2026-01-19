@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Trash2, Edit, Plus, Search, Filter, Crown } from 'lucide-react'
+import { Trash2, Edit, Plus, Search, Filter, Crown, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber } from '../utils/api'
 import { showError, showSuccess } from '../utils/toast'
@@ -292,6 +292,9 @@ const AdminUserManagementPage = () => {
                   Email
                 </th>
                 <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  Email Verification
+                </th>
+                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   Role
                 </th>
                 <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
@@ -309,7 +312,7 @@ const AdminUserManagementPage = () => {
               {users.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="8"
                     className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
                   >
                     No users found
@@ -329,6 +332,24 @@ const AdminUserManagementPage = () => {
                     </td>
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                       {user.email}
+                    </td>
+                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+                      {user.emailVerified ? (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-medium w-fit">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Verified</span>
+                        </div>
+                      ) : user.createdByAdmin ? (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs font-medium w-fit">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>Pending</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium w-fit">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Verified</span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
                       <div className="flex items-center gap-2">

@@ -68,7 +68,7 @@
               ▼         ▼       ▼           │
          Create    Rollback  Show Error ◀──┘
          User      User      (Try Again)
-              │         │       
+              │         │
               ▼         └───────────────────┐
         Store Token                        │
         in DB                              │
@@ -105,13 +105,13 @@
               Mark        Update   Show
               Email       Email    Error
               Verified    Status   (Resend)
-                │            │      
-                └────────┬───┘      
-                         │          
-                         ▼          
-                  ✅ ACCOUNT ACTIVE  
-                  User can login    
-                  Full access       
+                │            │
+                └────────┬───┘
+                         │
+                         ▼
+                  ✅ ACCOUNT ACTIVE
+                  User can login
+                  Full access
 ```
 
 ---
@@ -165,6 +165,7 @@
 ## Database Changes at a Glance
 
 ### User Model Addition
+
 ```javascript
 // New fields in User collection:
 {
@@ -175,6 +176,7 @@
 ```
 
 ### New Collection: AdminUserEmailVerification
+
 ```javascript
 {
   _id: ObjectId,
@@ -245,6 +247,7 @@
 ## Verification Page UI
 
 ### Step 1: Verification Page (Verifying...)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
@@ -257,6 +260,7 @@
 ```
 
 ### Step 2: Success Page (After Verification)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
@@ -273,6 +277,7 @@
 ```
 
 ### Step 3: Error Page (If Verification Fails)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
@@ -469,10 +474,10 @@ project/
 
 ## One-Liner Summary
 
-**Before**: Admins could create accounts with invalid emails.  
+**Before**: Admins could create accounts with invalid emails.
 **After**: All admin-created users must verify their email via secure token before account activation.
 
 ---
 
-*Last Updated: January 19, 2026*
-*Status: ✅ Production Ready*
+_Last Updated: January 19, 2026_
+_Status: ✅ Production Ready_

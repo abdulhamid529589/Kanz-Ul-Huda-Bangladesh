@@ -11,6 +11,7 @@
 ## Before Implementation
 
 ### Regular Users (Self-Registration)
+
 ```
 User fills registration form
         ↓
@@ -26,6 +27,7 @@ User verifies OTP + creates account
 ```
 
 ### Admin-Created Users ❌ SECURITY GAP
+
 ```
 Admin adds user manually
         ↓
@@ -45,6 +47,7 @@ Admin adds user manually
 ## After Implementation
 
 ### Admin-Created Users ✅ NOW SECURE
+
 ```
 Admin creates user
         ↓
@@ -72,15 +75,17 @@ System validates token (not expired, matches user)
 ## Security Layers Added
 
 ### Layer 1: Email Verification Requirement
-| Feature | Details |
-|---------|---------|
-| **Verification Method** | Secure token sent via email |
-| **Token** | 32-byte cryptographically random string |
-| **Expiry** | 7 days from creation |
-| **Resend Limit** | Max 5 attempts |
-| **Auto-Cleanup** | TTL index auto-deletes after expiry |
+
+| Feature                 | Details                                 |
+| ----------------------- | --------------------------------------- |
+| **Verification Method** | Secure token sent via email             |
+| **Token**               | 32-byte cryptographically random string |
+| **Expiry**              | 7 days from creation                    |
+| **Resend Limit**        | Max 5 attempts                          |
+| **Auto-Cleanup**        | TTL index auto-deletes after expiry     |
 
 ### Layer 2: Email Format Validation
+
 ```javascript
 // Validates email format before creating user
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -89,17 +94,19 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 ```
 
 ### Layer 3: Email Delivery Confirmation
+
 ```javascript
 // If email send fails, user creation is rolled back
 try {
   await sendAdminCreatedUserVerificationEmail(email, fullName, token)
 } catch (error) {
-  await User.deleteOne({ _id: user._id })  // Rollback
+  await User.deleteOne({ _id: user._id }) // Rollback
   throw new AppError('Failed to send verification email', 500)
 }
 ```
 
 ### Layer 4: Secure Token Management
+
 ```javascript
 // Generate cryptographically secure token
 const verificationToken = crypto.randomBytes(32).toString('hex')
@@ -109,23 +116,24 @@ await AdminUserEmailVerification.create({
   userId: user._id,
   verificationToken,
   isVerified: false,
-  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 })
 ```
 
 ### Layer 5: Audit Trail
+
 ```javascript
 logger.info('User created by admin with email verification required', {
-  adminId: req.user._id,      // Which admin
-  newUserId: user._id,        // Which user
-  email: user.email,          // What email
-  role: role,                 // What role
+  adminId: req.user._id, // Which admin
+  newUserId: user._id, // Which user
+  email: user.email, // What email
+  role: role, // What role
 })
 
 logger.info('Email verified for admin-created user', {
   userId: user._id,
   email: user.email,
-  verifiedAt: new Date()
+  verifiedAt: new Date(),
 })
 ```
 
@@ -134,6 +142,7 @@ logger.info('Email verified for admin-created user', {
 ## Real-World Scenarios
 
 ### Scenario 1: Admin Typos Email Address ✅ FIXED
+
 ```
 BEFORE:
 Admin: "Create user with john@gmial.com" (typo - gmail not gmial)
@@ -151,6 +160,7 @@ Result: ✅ User gets correct email, verification succeeds
 ```
 
 ### Scenario 2: Admin Creates User with Non-Existent Email ✅ FIXED
+
 ```
 BEFORE:
 Admin: Creates user with made-up email "bob@notreal.biz"
@@ -167,6 +177,7 @@ Result: ✅ System ensures email is valid and reachable
 ```
 
 ### Scenario 3: Admin Creates User with Someone Else's Email ✅ PREVENTED
+
 ```
 BEFORE:
 Malicious Admin: Creates user with "ceo@company.com"
@@ -183,6 +194,7 @@ Result: ✅ Fraud detected and prevented
 ```
 
 ### Scenario 4: User Doesn't Verify in Time ✅ AUTO-CLEANUP
+
 ```
 Admin: Creates user john@example.com
 System: Sends verification email
@@ -198,6 +210,7 @@ Result: ✅ Account security maintained, no orphaned records
 ## API Contract Changes
 
 ### Create User Endpoint
+
 ```javascript
 // ENDPOINT: POST /api/admin/users
 
@@ -220,6 +233,7 @@ Response 201: {
 ```
 
 ### Database Changes
+
 ```javascript
 // User model - NEW FIELDS
 emailVerified: Boolean (default: false)
@@ -247,6 +261,7 @@ createdByAdmin: Boolean (flag to distinguish from regular registrations)
 ## Admin Experience
 
 ### Creating User - New Dialog Message
+
 ```
 ✅ User created successfully!
 📧 Verification email sent to john@example.com
@@ -255,6 +270,7 @@ createdByAdmin: Boolean (flag to distinguish from regular registrations)
 ```
 
 ### User List - New Status Indicators
+
 ```
 Verified Users:        ✅ Green checkmark
 Unverified (Pending):  ⏳ Yellow hourglass
@@ -262,6 +278,7 @@ Regular Users:         (No indicator - auto-verified from registration)
 ```
 
 ### Error Handling - Admin Feedback
+
 ```
 ❌ Email send failed - User creation cancelled
 💡 Please check email configuration in .env
@@ -277,30 +294,32 @@ Regular Users:         (No indicator - auto-verified from registration)
 
 ## Security Comparison
 
-| Feature | Before | After |
-|---------|--------|-------|
-| **Admin-Created Users Verified?** | ❌ No | ✅ Yes |
-| **Email Format Validated?** | ⚠️ Basic regex | ✅ Validated |
-| **Email Reachability Tested?** | ❌ No | ✅ Send/bounce test |
-| **Typo Protection?** | ❌ No | ✅ Verification required |
-| **Invalid Email Detection?** | ❌ No | ✅ Verified via link |
-| **Fraud Prevention?** | ❌ No | ✅ Owner must verify |
-| **Resend Limit?** | N/A | ✅ Max 5 attempts |
-| **Token Expiry?** | N/A | ✅ 7 days |
-| **Auto-Cleanup?** | N/A | ✅ TTL index |
-| **Audit Trail?** | ⚠️ Basic | ✅ Comprehensive |
+| Feature                           | Before         | After                    |
+| --------------------------------- | -------------- | ------------------------ |
+| **Admin-Created Users Verified?** | ❌ No          | ✅ Yes                   |
+| **Email Format Validated?**       | ⚠️ Basic regex | ✅ Validated             |
+| **Email Reachability Tested?**    | ❌ No          | ✅ Send/bounce test      |
+| **Typo Protection?**              | ❌ No          | ✅ Verification required |
+| **Invalid Email Detection?**      | ❌ No          | ✅ Verified via link     |
+| **Fraud Prevention?**             | ❌ No          | ✅ Owner must verify     |
+| **Resend Limit?**                 | N/A            | ✅ Max 5 attempts        |
+| **Token Expiry?**                 | N/A            | ✅ 7 days                |
+| **Auto-Cleanup?**                 | N/A            | ✅ TTL index             |
+| **Audit Trail?**                  | ⚠️ Basic       | ✅ Comprehensive         |
 
 ---
 
 ## Performance Impact
 
 ### Minimal Overhead
+
 - **Email Send**: ~1-2 seconds (async, doesn't block)
 - **Token Generation**: <1ms
 - **Database Queries**: 2-3 per user creation (minimal)
 - **TTL Index**: Runs in background, no performance impact
 
 ### Storage
+
 - **Per User**: ~200 bytes extra in User model
 - **Verification Record**: ~500 bytes per unverified user
 - **Auto-Cleanup**: Expired records auto-deleted (TTL)
@@ -310,18 +329,21 @@ Regular Users:         (No indicator - auto-verified from registration)
 ## Rollout Recommendations
 
 ### Phase 1: Soft Launch (Week 1)
+
 - Deploy backend changes
 - Deploy email service updates
 - Test with small admin group
 - Monitor for email delivery issues
 
 ### Phase 2: Full Launch (Week 2)
+
 - Deploy frontend pages
 - Enable for all admins
 - Notify admins of new process
 - Provide documentation
 
 ### Phase 3: Monitoring (Ongoing)
+
 - Track verification success rate
 - Monitor email delivery
 - Collect admin feedback

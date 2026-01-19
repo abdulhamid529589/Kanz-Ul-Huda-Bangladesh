@@ -29,13 +29,10 @@ const ResendVerificationPage = () => {
     setError(null)
 
     try {
-      const res = await apiCall(
-        '/admin/users/resend-verification-email',
-        {
-          method: 'POST',
-          body: JSON.stringify({ email }),
-        },
-      )
+      const res = await apiCall('/admin/users/resend-verification-email', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      })
 
       if (res.ok) {
         setSent(true)
@@ -59,14 +56,13 @@ const ResendVerificationPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full text-center">
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Email Sent!
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Email Sent!</h1>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             We've sent a verification link to <strong>{email}</strong>
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Please check your inbox and click the link to verify your email. The link will expire in 7 days.
+            Please check your inbox and click the link to verify your email. The link will expire in
+            7 days.
           </p>
           <button
             onClick={() => navigate('/login')}
@@ -146,7 +142,8 @@ const ResendVerificationPage = () => {
 
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            💡 <strong>Tip:</strong> Check your spam folder if you don't see the email. Make sure to verify your email within 7 days.
+            💡 <strong>Tip:</strong> Check your spam folder if you don't see the email. Make sure to
+            verify your email within 7 days.
           </p>
         </div>
       </div>
