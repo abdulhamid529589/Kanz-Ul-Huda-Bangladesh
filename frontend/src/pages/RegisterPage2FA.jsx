@@ -10,6 +10,7 @@ const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
     confirmPassword: '',
     fullName: '',
     email: '',
+    phone: '',
     registrationCode: '',
   })
   const [error, setError] = useState('')
@@ -44,6 +45,14 @@ const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
     }
     if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
       setError('Please enter a valid email')
+      return false
+    }
+    if (!formData.phone.trim()) {
+      setError('Phone number is required')
+      return false
+    }
+    if (!/^[\d\s\-\+\(\)]{7,}$/.test(formData.phone.replace(/\s/g, ''))) {
+      setError('Please enter a valid phone number')
       return false
     }
     if (!formData.password) {
@@ -188,6 +197,20 @@ const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
               onChange={handleChange}
               className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
               placeholder="Enter your email"
+              disabled={loading}
+            />
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-100 mb-2">Phone Number *</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:bg-white/20 transition-all duration-200 text-base sm:text-base"
+              placeholder="Enter your phone number"
               disabled={loading}
             />
           </div>

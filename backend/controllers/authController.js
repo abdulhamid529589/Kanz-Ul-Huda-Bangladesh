@@ -284,9 +284,9 @@ export const resendOTP = asyncHandler(async (req, res) => {
  */
 export const register = asyncHandler(async (req, res) => {
   try {
-    const { username, password, fullName, email, registrationCode } = req.body
+    const { username, password, fullName, email, phone, registrationCode } = req.body
 
-    logger.info('Registration request received', { email, username })
+    logger.info('Registration request received', { email, username, phone })
 
     // Get registration code from database, fallback to .env
     let codeSettings
@@ -345,6 +345,7 @@ export const register = asyncHandler(async (req, res) => {
         password,
         fullName,
         email: email.toLowerCase(),
+        phone,
         role,
         status: 'active',
       })

@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer'
 import logger from './logger.js'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 let transporter
 
@@ -9,8 +12,8 @@ export const initializeEmailService = () => {
   // For Gmail: Enable "Less secure app access" or use App Password
   // For other providers: Update credentials accordingly
 
-  const emailUser = process.env.EMAIL_USER || 'your-email@gmail.com'
-  const emailPassword = process.env.EMAIL_PASSWORD || 'your-app-password'
+  const emailUser = process.env.EMAIL_USER || 'abdulhamid529589@gmail.com'
+  const emailPassword = process.env.EMAIL_PASSWORD || 'xuuu kvhx ztae icjx'
   const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com'
   const emailPort = process.env.EMAIL_PORT || 587
 
@@ -64,6 +67,18 @@ export const generateOTP = () => {
  * Send email with retry mechanism for timeout resilience
  */
 const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
+  // Ensure transporter is initialized
+  if (!transporter) {
+    logger.error('⚠️ Transporter not initialized, attempting to reinitialize email service')
+    initializeEmailService()
+  }
+
+  if (!transporter) {
+    throw new Error(
+      'Email service failed to initialize - check EMAIL_USER and EMAIL_PASSWORD environment variables',
+    )
+  }
+
   let lastError = null
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
