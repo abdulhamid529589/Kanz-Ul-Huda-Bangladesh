@@ -232,19 +232,19 @@ const AdminUserManagementPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 space-y-3 sm:space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+          <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by username, email, or name..."
+              placeholder="Search users..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value)
                 setPage(1)
               }}
-              className="w-full pl-10 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
 
@@ -254,7 +254,7 @@ const AdminUserManagementPage = () => {
               setRoleFilter(e.target.value)
               setPage(1)
             }}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
@@ -267,7 +267,7 @@ const AdminUserManagementPage = () => {
               setStatusFilter(e.target.value)
               setPage(1)
             }}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
@@ -276,107 +276,114 @@ const AdminUserManagementPage = () => {
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
-              <tr>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Username
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Full Name
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Email
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Email Verification
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Role
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Status
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Last Login
-                </th>
-                <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y dark:divide-gray-700">
-              {users.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="8"
-                    className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
-                  >
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-gray-900 dark:text-white text-sm">
+      {/* Users Cards View - All Devices */}
+      <div className="space-y-4">
+        {users.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
+            No users found
+          </div>
+        ) : (
+          users.map((user) => (
+            <div key={user._id} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Card 1: Username, Full Name, Email */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  User Information
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      Username
+                    </p>
+                    <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white break-all">
                       {user.username}
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-gray-600 dark:text-gray-300 text-sm">
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      Full Name
+                    </p>
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white break-all">
                       {user.fullName}
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      Email
+                    </p>
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white break-all">
                       {user.email}
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                      {user.emailVerified ? (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs font-medium w-fit">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Verified</span>
-                        </div>
-                      ) : user.createdByAdmin ? (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs font-medium w-fit">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>Pending</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Email Verification, Role, Status, Last Login, Actions */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  User Details & Actions
+                </h3>
+                <div className="space-y-4">
+                  {/* Email Verification */}
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      Email Verification
+                    </p>
+                    {user.emailVerified ? (
+                      <div className="flex items-center gap-1 px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs sm:text-sm font-medium w-fit">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Verified</span>
+                      </div>
+                    ) : user.createdByAdmin ? (
+                      <div className="flex items-center gap-1 px-3 py-2 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs sm:text-sm font-medium w-fit">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Pending</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs sm:text-sm font-medium w-fit">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Verified</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Role, Status, Last Login */}
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        Role
+                      </p>
+                      {user.isMainAdmin ? (
+                        <div className="flex items-center gap-1 px-2 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg text-xs sm:text-sm font-medium">
+                          <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium w-fit">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Verified</span>
-                        </div>
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleChangeRole(user._id, e.target.value)}
+                          disabled={!isMainAdmin}
+                          className={`w-full px-2 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                            !isMainAdmin ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          title={!isMainAdmin ? 'Only main admin can change roles' : ''}
+                        >
+                          <option value="collector">Collector</option>
+                          <option value="admin">Admin</option>
+                        </select>
                       )}
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                      <div className="flex items-center gap-2">
-                        {user.isMainAdmin ? (
-                          <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium">
-                            <Crown className="w-4 h-4" />
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </div>
-                        ) : (
-                          <select
-                            value={user.role}
-                            onChange={(e) => handleChangeRole(user._id, e.target.value)}
-                            disabled={!isMainAdmin}
-                            className={`px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm ${
-                              !isMainAdmin ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                            title={!isMainAdmin ? 'Only main admin can change roles' : ''}
-                          >
-                            <option value="collector">Collector</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+                    </div>
+
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        Status
+                      </p>
                       <span
-                        className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                        className={`block px-2 py-2 rounded-lg text-xs sm:text-sm font-medium text-center ${
                           user.status === 'active'
                             ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                             : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
@@ -384,90 +391,172 @@ const AdminUserManagementPage = () => {
                       >
                         {user.status}
                       </span>
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-gray-600 dark:text-gray-300 text-xs sm:text-sm whitespace-nowrap">
-                      {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                    </td>
-                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleToggleStatus(user._id, user.status)}
-                          disabled={!isMainAdmin}
-                          title={
-                            !isMainAdmin
-                              ? 'Only main admin can edit users'
-                              : user.status === 'active'
-                                ? 'Deactivate'
-                                : 'Activate'
-                          }
-                          className={`p-2 rounded-lg transition-colors ${
-                            !isMainAdmin
-                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
-                              : user.status === 'active'
-                                ? 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900'
-                                : 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900'
-                          }`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          disabled={!isMainAdmin}
-                          title={!isMainAdmin ? 'Only main admin can delete users' : 'Delete'}
-                          className={`p-2 rounded-lg transition-colors ${
-                            !isMainAdmin
-                              ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600'
-                              : 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900'
-                          }`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        Last Login
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-200 text-center px-2 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        {user.lastLogin
+                          ? new Date(user.lastLogin).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => handleToggleStatus(user._id, user.status)}
+                      disabled={!isMainAdmin}
+                      title={
+                        !isMainAdmin
+                          ? 'Only main admin can edit users'
+                          : user.status === 'active'
+                            ? 'Deactivate'
+                            : 'Activate'
+                      }
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg transition-colors ${
+                        !isMainAdmin
+                          ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700'
+                          : user.status === 'active'
+                            ? 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900'
+                            : 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900'
+                      }`}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="hidden sm:inline">
+                        {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user._id)}
+                      disabled={!isMainAdmin}
+                      title={!isMainAdmin ? 'Only main admin can delete users' : 'Delete'}
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg transition-colors ${
+                        !isMainAdmin
+                          ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700'
+                          : 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900'
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                page === p
-                  ? 'bg-primary-600 dark:bg-primary-700 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+        <div className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
+          {totalPages <= 5 ? (
+            // Show all pages if 5 or fewer
+            Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg transition-colors ${
+                  page === p
+                    ? 'bg-primary-600 dark:bg-primary-700 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                }`}
+              >
+                {p}
+              </button>
+            ))
+          ) : (
+            // Show smart pagination for more pages
+            <>
+              {/* First page */}
+              <button
+                onClick={() => setPage(1)}
+                className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg transition-colors ${
+                  page === 1
+                    ? 'bg-primary-600 dark:bg-primary-700 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                }`}
+              >
+                1
+              </button>
+
+              {/* Previous pages */}
+              {page > 3 && (
+                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-base">...</span>
+              )}
+              {page > 2 && (
+                <button
+                  onClick={() => setPage(page - 1)}
+                  className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                >
+                  {page - 1}
+                </button>
+              )}
+
+              {/* Current page */}
+              {page > 1 && page < totalPages && (
+                <button className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg bg-primary-600 dark:bg-primary-700 text-white">
+                  {page}
+                </button>
+              )}
+
+              {/* Next pages */}
+              {page < totalPages - 1 && (
+                <button
+                  onClick={() => setPage(page + 1)}
+                  className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                >
+                  {page + 1}
+                </button>
+              )}
+
+              {/* Last page indicator */}
+              {page < totalPages - 2 && (
+                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-base">...</span>
+              )}
+
+              {/* Last page */}
+              <button
+                onClick={() => setPage(totalPages)}
+                className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg transition-colors ${
+                  page === totalPages
+                    ? 'bg-primary-600 dark:bg-primary-700 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                }`}
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
         </div>
       )}
 
       {/* Create User Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Add New User</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Add New User
+            </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                   Username
                 </label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  placeholder="3-20 characters, alphanumeric and underscores"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="3-20 characters"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 {formData.username && !/^[a-zA-Z0-9_]{3,20}$/.test(formData.username) && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -481,7 +570,7 @@ const AdminUserManagementPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                   Full Name
                 </label>
                 <input
@@ -489,7 +578,7 @@ const AdminUserManagementPage = () => {
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   placeholder="At least 2 characters"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 {formData.fullName && formData.fullName.trim().length < 2 && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -499,7 +588,7 @@ const AdminUserManagementPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                   Email
                 </label>
                 <input
@@ -507,7 +596,7 @@ const AdminUserManagementPage = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="user@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 {formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -517,7 +606,7 @@ const AdminUserManagementPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                   Password
                 </label>
                 <input
@@ -525,7 +614,7 @@ const AdminUserManagementPage = () => {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Minimum 8 characters"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 {formData.password && (
                   <div className="mt-1 space-y-1">
@@ -540,13 +629,13 @@ const AdminUserManagementPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                   Role
                 </label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="collector">Collector</option>
                   <option value="admin">Admin</option>
@@ -554,16 +643,16 @@ const AdminUserManagementPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2 sm:gap-3 mt-6">
               <button
                 onClick={handleCloseModal}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateUser}
-                className="flex-1 px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-sm bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
               >
                 Create User
               </button>

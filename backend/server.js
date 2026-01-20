@@ -45,9 +45,21 @@ app.use(helmet())
 app.use(compression())
 
 // CORS Configuration
+// Parse CORS_ORIGIN as array of allowed origins
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(origin => origin.trim())
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('CORS not allowed for this origin'))
+      }
+    },
     credentials: true,
   }),
 )
