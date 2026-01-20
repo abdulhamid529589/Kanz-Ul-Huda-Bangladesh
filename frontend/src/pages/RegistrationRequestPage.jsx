@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Mail, User, CheckCircle, AlertCircle } from 'lucide-react'
 import { apiCall } from '../utils/api'
+import { showSuccess, showError } from '../utils/toast'
 
 const RegistrationRequestForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -58,30 +59,36 @@ const RegistrationRequestForm = ({ onSuccess }) => {
       })
 
       if (response.ok) {
-        setSuccess('Registration request submitted successfully! Please wait for admin approval.')
+        showSuccess(
+          'Registration request submitted successfully! Please check your email for confirmation. Our admin team will review and approve your request.',
+        )
         setFormData({
           email: '',
           name: '',
         })
+        setSuccess('') // Clear the local state success too
         setTimeout(() => {
           if (onSuccess) {
             onSuccess()
           }
         }, 2000)
       } else {
-        setError(
-          response.data?.message || 'Failed to submit registration request. Please try again.',
-        )
+        const errorMsg =
+          response.data?.message || 'Failed to submit registration request. Please try again.'
+        setError(errorMsg)
+        showError(errorMsg)
       }
     } catch (err) {
-      setError(err.message || 'Failed to submit registration request. Please try again.')
+      const errorMsg = err.message || 'Failed to submit registration request. Please try again.'
+      setError(errorMsg)
+      showError(errorMsg)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
@@ -96,14 +103,14 @@ const RegistrationRequestForm = ({ onSuccess }) => {
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
 
         {success && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
             <p className="text-sm text-green-800">{success}</p>
           </div>
         )}
