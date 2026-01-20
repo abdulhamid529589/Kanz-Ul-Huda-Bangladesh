@@ -3,7 +3,7 @@ import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { apiCall } from '../utils/api'
 import { showSuccess, showError } from '../utils/toast'
 
-const RegisterPage2FA = ({ onBackToLogin }) => {
+const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -97,10 +97,13 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
         localStorage.setItem('accessToken', data.data.token)
         showSuccess('Registration successful! Welcome aboard!')
 
-        // Force page reload to trigger AuthContext to fetch user
+        // Call parent callback to hide registration page
+        // This will trigger App to re-render and check auth status
         setTimeout(() => {
+          onRegistrationSuccess?.()
+          // Also reload to ensure AuthContext fetches user data
           window.location.reload()
-        }, 500)
+        }, 800)
       } else {
         setError(data.message || 'Registration failed. Please try again.')
         showError(data.message || 'Registration failed')

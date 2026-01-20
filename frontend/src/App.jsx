@@ -56,7 +56,13 @@ const AppContent = () => {
     return showRegistrationRequest ? (
       <RegistrationRequestPage onSuccess={() => setShowRegistrationRequest(false)} />
     ) : showRegister ? (
-      <RegisterPage2FA onBackToLogin={() => setShowRegister(false)} />
+      <RegisterPage2FA
+        onBackToLogin={() => setShowRegister(false)}
+        onRegistrationSuccess={() => {
+          setShowRegister(false)
+          // User will be automatically logged in, App will re-render and show dashboard
+        }}
+      />
     ) : (
       <LoginPage
         onRegisterClick={() => setShowRegister(true)}
