@@ -108,6 +108,11 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
  */
 export const sendOTPEmail = async (email, otp, fullName = 'User') => {
   try {
+    if (!transporter) {
+      logger.error('Email transporter not initialized', { email })
+      throw new Error('Email service not initialized. Please check your email configuration.')
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -149,11 +154,16 @@ export const sendOTPEmail = async (email, otp, fullName = 'User') => {
       `,
     }
 
-    const result = await transporter.sendMail(mailOptions)
+    const result = await sendEmailWithRetry(mailOptions)
     logger.info('OTP email sent successfully', { email })
     return result
   } catch (error) {
-    logger.error('Failed to send OTP email', { email, error: error.message })
+    logger.error('Failed to send OTP email', {
+      email,
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    })
     throw error
   }
 }

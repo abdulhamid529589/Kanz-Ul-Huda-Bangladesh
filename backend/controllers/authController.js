@@ -26,78 +26,135 @@ import {
  * @access  Public
  */
 export const requestOTP = asyncHandler(async (req, res) => {
-  const { username, password, fullName, email, registrationCode } = req.body
-
-  // Get registration code from database, fallback to .env
-  const codeSettings = await Settings.findOne({ key: 'registrationCode' })
-  const REGISTRATION_CODE = codeSettings?.value || process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
-
-  if (registrationCode !== REGISTRATION_CODE) {
-    throw new AppError('Invalid registration code. Please contact the administrator.', 400)
-  }
-
-  // Get current registration code version
-  const versionSettings = await Settings.findOne({ key: 'registrationCodeVersion' })
-  const currentCodeVersion = versionSettings?.value || 1
-
-  // Check if username already exists
-  const usernameExists = await User.findOne({ username: username.toLowerCase() })
-  if (usernameExists) {
-    throw new AppError('Username already exists', 400)
-  }
-
-  // Check if email already exists
-  const emailExists = await User.findOne({ email: email.toLowerCase() })
-  if (emailExists) {
-    throw new AppError('Email already exists', 400)
-  }
-
-  // Check if email has an approved registration request
-  const registrationRequest = await RegistrationRequest.findOne({
-    email: email.toLowerCase(),
-  })
-  if (!registrationRequest || registrationRequest.status !== 'approved') {
-    throw new AppError(
-      'Your email is not approved for registration. Please submit a registration request first.',
-      403,
-    )
-  }
-
-  // Generate OTP
-  const otp = generateOTP()
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-
-  // Delete any existing OTP for this email
-  await OTPVerification.deleteOne({ email: email.toLowerCase() })
-
-  // Create OTP record
-  const otpRecord = await OTPVerification.create({
-    email: email.toLowerCase(),
-    username: username.toLowerCase(),
-    otp,
-    expiresAt,
-    registrationData: {
-      password,
-      fullName,
-      registrationCode,
-      registrationCodeVersion: currentCodeVersion,
-    },
-  })
-
-  // Send OTP email
   try {
-    await sendOTPEmail(email, otp, fullName)
+    const { username, password, fullName, email, registrationCode } = req.body
+
+    logger.info('OTP request received', { email, username })
+
+    // Get registration code from database, fallback to .env
+    let codeSettings
+    try {
+      codeSettings = await Settings.findOne({ key: 'registrationCode' })
+    } catch (dbError) {
+      logger.error('Error fetching registration code from database', { error: dbError.message })
+      codeSettings = null
+    }
+    const REGISTRATION_CODE =
+      codeSettings?.value || process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
+
+    if (registrationCode !== REGISTRATION_CODE) {
+      throw new AppError('Invalid registration code. Please contact the administrator.', 400)
+    }
+
+    // Get current registration code version
+    let versionSettings
+    try {
+      versionSettings = await Settings.findOne({ key: 'registrationCodeVersion' })
+    } catch (dbError) {
+      logger.error('Error fetching registration code version', { error: dbError.message })
+      versionSettings = null
+    }
+    const currentCodeVersion = versionSettings?.value || 1
+
+    // Check if username already exists
+    const usernameExists = await User.findOne({ username: username.toLowerCase() })
+    if (usernameExists) {
+      throw new AppError('Username already exists', 400)
+    }
+
+    // Check if email already exists
+    const emailExists = await User.findOne({ email: email.toLowerCase() })
+    if (emailExists) {
+      throw new AppError('Email already exists', 400)
+    }
+
+    // Check if email has an approved registration request
+    let registrationRequest
+    try {
+      registrationRequest = await RegistrationRequest.findOne({
+        email: email.toLowerCase(),
+      })
+    } catch (dbError) {
+      logger.error('Error checking registration request', { email, error: dbError.message })
+      throw new AppError('Database error. Please try again later.', 500)
+    }
+
+    if (!registrationRequest || registrationRequest.status !== 'approved') {
+      throw new AppError(
+        'Your email is not approved for registration. Please submit a registration request first.',
+        403,
+      )
+    }
+
+    // Generate OTP
+    const otp = generateOTP()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+    logger.info('OTP generated', { email, otp: otp.substring(0, 3) + '***' })
+
+    // Delete any existing OTP for this email
+    try {
+      await OTPVerification.deleteOne({ email: email.toLowerCase() })
+    } catch (dbError) {
+      logger.error('Error deleting existing OTP', { email, error: dbError.message })
+    }
+
+    // Create OTP record
+    let otpRecord
+    try {
+      otpRecord = await OTPVerification.create({
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+        otp,
+        expiresAt,
+        registrationData: {
+          password,
+          fullName,
+          registrationCode,
+          registrationCodeVersion: currentCodeVersion,
+        },
+      })
+      logger.info('OTP record created', { email, otpId: otpRecord._id })
+    } catch (dbError) {
+      logger.error('Error creating OTP record', { email, error: dbError.message })
+      throw new AppError('Database error while creating OTP. Please try again.', 500)
+    }
+
+    // Send OTP email
+    try {
+      logger.info('Attempting to send OTP email', { email })
+      await sendOTPEmail(email, otp, fullName)
+      logger.info('OTP email sent successfully', { email })
+    } catch (emailError) {
+      logger.error('Failed to send OTP email', {
+        email,
+        error: emailError.message,
+        code: emailError.code,
+        stack: emailError.stack,
+      })
+      // Delete the OTP record if email sending fails
+      try {
+        await OTPVerification.deleteOne({ _id: otpRecord._id })
+      } catch (deleteError) {
+        logger.error('Error deleting OTP record after email failure', {
+          error: deleteError.message,
+        })
+      }
+      throw new AppError(
+        'Failed to send OTP email. Please verify your email address and try again.',
+        500,
+      )
+    }
+
+    logger.info('OTP sent for registration', { email, username: username.toLowerCase() })
+
+    sendSuccessResponse(res, 200, 'OTP sent to your email. Valid for 10 minutes.', {
+      email: email.toLowerCase(),
+    })
   } catch (error) {
-    // Delete the OTP record if email sending fails
-    await OTPVerification.deleteOne({ _id: otpRecord._id })
-    throw new AppError('Failed to send OTP email. Please try again.', 500)
+    // Re-throw the error to be caught by asyncHandler
+    throw error
   }
-
-  logger.info('OTP sent for registration', { email, username: username.toLowerCase() })
-
-  sendSuccessResponse(res, 200, 'OTP sent to your email. Valid for 10 minutes.', {
-    email: email.toLowerCase(),
-  })
 })
 
 /**
@@ -226,53 +283,96 @@ export const resendOTP = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const register = asyncHandler(async (req, res) => {
-  const { username, password, fullName, email, registrationCode } = req.body
+  try {
+    const { username, password, fullName, email, registrationCode } = req.body
 
-  // Validate registration code (security measure)
-  const REGISTRATION_CODE = process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
+    logger.info('Registration request received', { email, username })
 
-  if (registrationCode !== REGISTRATION_CODE) {
-    throw new AppError('Invalid registration code. Please contact the administrator.', 400)
+    // Get registration code from database, fallback to .env
+    let codeSettings
+    try {
+      codeSettings = await Settings.findOne({ key: 'registrationCode' })
+    } catch (dbError) {
+      logger.error('Error fetching registration code from database', { error: dbError.message })
+      codeSettings = null
+    }
+    const REGISTRATION_CODE =
+      codeSettings?.value || process.env.REGISTRATION_CODE || 'KANZULHUDA2026'
+
+    if (registrationCode !== REGISTRATION_CODE) {
+      throw new AppError('Invalid registration code. Please contact the administrator.', 400)
+    }
+
+    // Check if username already exists
+    const usernameExists = await User.findOne({ username: username.toLowerCase() })
+    if (usernameExists) {
+      throw new AppError('Username already exists', 400)
+    }
+
+    // Check if email already exists
+    const emailExists = await User.findOne({ email: email.toLowerCase() })
+    if (emailExists) {
+      throw new AppError('Email already exists', 400)
+    }
+
+    // Check if email has an approved registration request
+    let registrationRequest
+    try {
+      registrationRequest = await RegistrationRequest.findOne({
+        email: email.toLowerCase(),
+      })
+    } catch (dbError) {
+      logger.error('Error checking registration request', { email, error: dbError.message })
+      throw new AppError('Database error. Please try again later.', 500)
+    }
+
+    if (!registrationRequest || registrationRequest.status !== 'approved') {
+      throw new AppError(
+        'Your email is not approved for registration. Please submit a registration request first.',
+        403,
+      )
+    }
+
+    // Check if this is the first user (make them admin)
+    const userCount = await User.countDocuments()
+    const role = userCount === 0 ? 'admin' : 'collector'
+
+    // Create user
+    let user
+    try {
+      user = await User.create({
+        username: username.toLowerCase(),
+        password,
+        fullName,
+        email: email.toLowerCase(),
+        role,
+        status: 'active',
+      })
+      logger.info('New user registered', {
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      })
+    } catch (dbError) {
+      logger.error('Error creating user', { email, username, error: dbError.message })
+      throw new AppError('Failed to create user account. Please try again.', 500)
+    }
+
+    // Generate token
+    const token = generateToken(user._id)
+
+    // Remove password from response
+    const userResponse = user.toJSON()
+
+    logger.info('Registration successful', { username: user.username, role: user.role })
+
+    sendSuccessResponse(res, 201, `Registration successful! You are registered as ${role}.`, {
+      token,
+      user: userResponse,
+    })
+  } catch (error) {
+    throw error
   }
-
-  // Check if username already exists
-  const usernameExists = await User.findOne({ username: username.toLowerCase() })
-  if (usernameExists) {
-    throw new AppError('Username already exists', 400)
-  }
-
-  // Check if email already exists
-  const emailExists = await User.findOne({ email: email.toLowerCase() })
-  if (emailExists) {
-    throw new AppError('Email already exists', 400)
-  }
-
-  // Check if this is the first user (make them admin)
-  const userCount = await User.countDocuments()
-  const role = userCount === 0 ? 'admin' : 'collector'
-
-  // Create user
-  const user = await User.create({
-    username: username.toLowerCase(),
-    password,
-    fullName,
-    email: email.toLowerCase(),
-    role,
-    status: 'active',
-  })
-
-  logger.info('New user registered', { username: user.username, role: user.role })
-
-  // Generate token
-  const token = generateToken(user._id)
-
-  // Remove password from response
-  const userResponse = user.toJSON()
-
-  sendSuccessResponse(res, 201, `Registration successful! You are registered as ${role}.`, {
-    token,
-    user: userResponse,
-  })
 })
 
 /**
