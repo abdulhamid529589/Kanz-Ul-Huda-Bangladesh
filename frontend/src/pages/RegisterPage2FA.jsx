@@ -2,10 +2,8 @@ import { useState } from 'react'
 import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { apiCall } from '../utils/api'
 import { showSuccess, showError } from '../utils/toast'
-import { useAuth } from '../context/AuthContext'
 
 const RegisterPage2FA = ({ onBackToLogin }) => {
-  const { refreshUser } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -96,11 +94,13 @@ const RegisterPage2FA = ({ onBackToLogin }) => {
 
       if (ok) {
         // Store token
-        localStorage.setItem('token', data.data.token)
+        localStorage.setItem('accessToken', data.data.token)
         showSuccess('Registration successful! Welcome aboard!')
-        
-        // Refresh user context to load the authenticated state
-        await refreshUser()
+
+        // Force page reload to trigger AuthContext to fetch user
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
       } else {
         setError(data.message || 'Registration failed. Please try again.')
         showError(data.message || 'Registration failed')
