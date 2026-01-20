@@ -53,9 +53,26 @@ export const submitRegistrationRequest = asyncHandler(async (req, res) => {
 
   // Send confirmation email to user
   try {
+    logger.info('Attempting to send registration confirmation email', { email, name })
     await sendRegistrationRequestConfirmationEmail(email, name)
+    logger.info('✅ Registration confirmation email sent successfully', { email })
   } catch (error) {
-    logger.warn('Failed to send confirmation email to user', { email, error: error.message })
+    logger.error('❌ Failed to send confirmation email to user', {
+      email,
+      error: error.message,
+      errorCode: error.code,
+      errorName: error.name,
+      stack: error.stack,
+    })
+    // Log email configuration for debugging
+    logger.error('Email configuration:', {
+      EMAIL_USER: process.env.EMAIL_USER ? 'SET' : 'NOT SET',
+      EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET',
+      EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      EMAIL_PORT: process.env.EMAIL_PORT || 587,
+    })
+    // Don't throw - let registration request succeed even if email fails
+    // User will still see success message in UI
   }
 
   logger.info('Registration request submitted', { email, name })

@@ -14,6 +14,13 @@ export const initializeEmailService = () => {
   const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com'
   const emailPort = process.env.EMAIL_PORT || 587
 
+  logger.info('Initializing email service', {
+    host: emailHost,
+    port: emailPort,
+    user: emailUser,
+    configured: !!emailUser && emailUser !== 'your-email@gmail.com',
+  })
+
   transporter = nodemailer.createTransport({
     host: emailHost,
     port: emailPort,
@@ -22,14 +29,26 @@ export const initializeEmailService = () => {
       user: emailUser,
       pass: emailPassword,
     },
+    // Connection timeout settings for Render compatibility
+    connectionTimeout: 5000, // 5 seconds
+    socketTimeout: 5000, // 5 seconds
+    // TLS settings for better compatibility
+    tls: {
+      rejectUnauthorized: false, // Required for some hosting providers
+    },
   })
 
   // Verify connection
   transporter.verify((error, success) => {
     if (error) {
-      logger.error('Email service initialization failed', { error: error.message })
+      logger.error('❌ Email service initialization FAILED', {
+        error: error.message,
+        code: error.code,
+      })
+      console.error('❌ Email Service Error:', error.message)
     } else {
-      logger.info('Email service initialized successfully')
+      logger.info('✅ Email service initialized successfully')
+      console.log('✅ Email Service Connected')
     }
   })
 }
@@ -39,6 +58,49 @@ export const initializeEmailService = () => {
  */
 export const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
+/**
+ * Send email with retry mechanism for timeout resilience
+ */
+const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
+  let lastError = null
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.info(`📧 Sending email (attempt ${attempt}/${maxRetries})`, {
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+      })
+
+      const info = await transporter.sendMail(mailOptions)
+      logger.info('✅ Email sent successfully', {
+        to: mailOptions.to,
+        messageId: info.messageId,
+      })
+      return info
+    } catch (error) {
+      lastError = error
+      logger.warn(`⚠️ Email send attempt ${attempt} failed`, {
+        to: mailOptions.to,
+        error: error.message,
+        code: error.code,
+        attempt,
+        maxRetries,
+      })
+
+      // If it's the last attempt, don't retry
+      if (attempt < maxRetries) {
+        // Wait before retrying (exponential backoff)
+        const delayMs = 1000 * attempt
+        logger.info(`⏳ Retrying in ${delayMs}ms...`)
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
+      }
+    }
+  }
+
+  // All retries failed
+  throw lastError
 }
 
 /**
@@ -214,6 +276,11 @@ export const sendPasswordResetEmail = async (email, resetLink, fullName = 'User'
  */
 export const sendRegistrationRequestConfirmationEmail = async (email, name) => {
   try {
+    if (!transporter) {
+      logger.error('❌ Email transporter not initialized', { email })
+      throw new Error('Email service is not initialized')
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -251,12 +318,16 @@ export const sendRegistrationRequestConfirmationEmail = async (email, name) => {
       `,
     }
 
-    await transporter.sendMail(mailOptions)
-    logger.info('Registration request confirmation email sent', { email })
+    const info = await sendEmailWithRetry(mailOptions)
+    logger.info('✅ Registration request confirmation email sent', {
+      email,
+      messageId: info.messageId,
+    })
   } catch (error) {
-    logger.error('Failed to send registration request confirmation email', {
+    logger.error('❌ Failed to send registration request confirmation email', {
       email,
       error: error.message,
+      stack: error.stack,
     })
     throw error
   }
@@ -267,6 +338,11 @@ export const sendRegistrationRequestConfirmationEmail = async (email, name) => {
  */
 export const sendRegistrationApprovedEmail = async (email, name) => {
   try {
+    if (!transporter) {
+      logger.error('❌ Email transporter not initialized', { email })
+      throw new Error('Email service is not initialized')
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -304,10 +380,14 @@ export const sendRegistrationApprovedEmail = async (email, name) => {
       `,
     }
 
-    await transporter.sendMail(mailOptions)
-    logger.info('Registration approval email sent', { email })
+    const info = await sendEmailWithRetry(mailOptions)
+    logger.info('✅ Registration approval email sent', { email, messageId: info.messageId })
   } catch (error) {
-    logger.error('Failed to send registration approval email', { email, error: error.message })
+    logger.error('❌ Failed to send registration approval email', {
+      email,
+      error: error.message,
+      stack: error.stack,
+    })
     throw error
   }
 }
@@ -317,6 +397,11 @@ export const sendRegistrationApprovedEmail = async (email, name) => {
  */
 export const sendRegistrationRejectedEmail = async (email, name, reason) => {
   try {
+    if (!transporter) {
+      logger.error('❌ Email transporter not initialized', { email })
+      throw new Error('Email service is not initialized')
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -354,10 +439,14 @@ export const sendRegistrationRejectedEmail = async (email, name, reason) => {
       `,
     }
 
-    await transporter.sendMail(mailOptions)
-    logger.info('Registration rejection email sent', { email })
+    const info = await sendEmailWithRetry(mailOptions)
+    logger.info('✅ Registration rejection email sent', { email, messageId: info.messageId })
   } catch (error) {
-    logger.error('Failed to send registration rejection email', { email, error: error.message })
+    logger.error('❌ Failed to send registration rejection email', {
+      email,
+      error: error.message,
+      stack: error.stack,
+    })
     throw error
   }
 }
