@@ -41,19 +41,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Check if registration code version changed
-      const versionResponse = await fetch(`${API_URL}/admin/settings/registration-code-version`)
-      const versionData = await versionResponse.json()
-      const currentCodeVersion = versionData.data?.version || 1
-      const userCodeVersion = user?.registrationCodeVersion || 1
-
-      // If user's code version is different, logout (code was changed)
-      if (userCodeVersion !== currentCodeVersion) {
-        console.log('Registration code was changed. Logging out...')
-        logout()
-        return false
-      }
-
       const response = await fetch(`${API_URL}/auth/refresh-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

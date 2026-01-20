@@ -42,7 +42,7 @@ export const changeRegistrationCode = asyncHandler(async (req, res) => {
     await codeSettings.save()
   }
 
-  // Get current code version
+  // Get current code version (for audit purposes only)
   let settings = await Settings.findOne({ key: 'registrationCodeVersion' })
 
   if (!settings) {
@@ -50,14 +50,16 @@ export const changeRegistrationCode = asyncHandler(async (req, res) => {
     settings = await Settings.create({
       key: 'registrationCodeVersion',
       value: 1,
-      description: 'Current version of registration code',
+      description: 'Current version of registration code (for audit purposes)',
       category: 'general',
       dataType: 'number',
       updatedBy: req.user._id,
     })
   }
 
-  // Increment version
+  // Increment version for audit trail only
+  // Note: This version is stored in user profiles during registration to track which code they registered with
+  // It does NOT force existing users to logout
   const newVersion = (settings.value || 1) + 1
   settings.value = newVersion
   settings.version = (settings.version || 1) + 1
@@ -70,22 +72,25 @@ export const changeRegistrationCode = asyncHandler(async (req, res) => {
   logger.info('Registration code changed', {
     changedBy: req.user.username,
     newVersion,
+    note: 'Existing users are NOT affected - only new registrations require the new code',
   })
 
   // Log for audit trail
   logger.warn('SECURITY: Registration code was changed by main admin', {
     admin: req.user.email,
     newVersion,
+    affectedUsers: 'Only NEW registrations - existing users remain logged in',
     timestamp: new Date(),
   })
 
   sendSuccessResponse(
     res,
     200,
-    'Registration code changed successfully. All users will be logged out.',
+    'Registration code changed successfully. Existing users remain logged in.',
     {
       newVersion,
-      message: 'All users must login with new registration code',
+      message: 'Only NEW registrations require the updated code',
+      existingUsersUnaffected: true,
     },
   )
 })
