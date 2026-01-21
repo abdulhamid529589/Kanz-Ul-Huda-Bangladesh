@@ -37,6 +37,7 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
     { id: 'personal-reports', name: 'My Reports', icon: FileText },
     { id: 'leaderboard', name: 'Leaderboard', icon: Trophy },
     { id: 'profiles', name: 'Member Profiles', icon: UserCircle },
+    { id: 'messaging', name: 'Messages', icon: Send },
     { id: 'settings', name: 'Settings', icon: Settings },
   ]
 

@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import logger from './logger.js'
 import dotenv from 'dotenv'
 
-dotenv.config()
+dotenv.config({ path: '../.env' })
 
 let transporter
 

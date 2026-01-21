@@ -1,4 +1,6 @@
 import express from 'express'
+import http from 'http'
+import { Server } from 'socket.io'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -16,6 +18,7 @@ import { globalErrorHandler } from './utils/errorHandler.js'
 import logger from './utils/logger.js'
 import { initializeEmailService } from './utils/emailService.js'
 import { scheduleCleanupJobs } from './utils/cleanupJobs.js'
+import { initializeSocket } from './utils/socketHandler.js'
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js'
@@ -30,8 +33,19 @@ import adminMemberRoutes from './routes/adminMemberRoutes.js'
 import adminSettingsRoutes from './routes/adminSettingsRoutes.js'
 import registrationCodeRoutes from './routes/registrationCodeRoutes.js'
 import registrationRequestRoutes from './routes/registrationRequestRoutes.js'
+import messagingRoutes from './routes/messagingRoutes.js'
 
 const app = express()
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+      : ['http://localhost:5173', 'http://localhost:3000'],
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+})
 
 // Trust proxy configuration for Render deployment
 // This allows Express to trust the X-Forwarded-* headers from Render's proxy
@@ -46,7 +60,9 @@ app.use(compression())
 
 // CORS Configuration
 // Parse CORS_ORIGIN as array of allowed origins
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(origin => origin.trim())
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
 
 app.use(
   cors({
@@ -106,6 +122,7 @@ app.use('/api/personal-reports', generalLimiter)
 app.use('/api/admin/users', generalLimiter)
 app.use('/api/admin/members', generalLimiter)
 app.use('/api/admin/settings', generalLimiter)
+app.use('/api/messaging', generalLimiter)
 
 // Database Connection
 const MONGO_URI = process.env.MONGODB_URI || `mongodb://localhost:27017/${DB_NAME}`
@@ -130,6 +147,7 @@ app.use('/api/submissions', submissionRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/reports', reportRoutes)
 app.use('/api/personal-reports', personalReportRoutes)
+app.use('/api/messaging', messagingRoutes)
 
 // Admin Routes
 app.use('/api/admin/users', adminUserRoutes)
@@ -139,6 +157,9 @@ app.use('/api/admin/settings', registrationCodeRoutes)
 
 // Registration Requests
 app.use('/api/registration-requests', registrationRequestRoutes)
+
+// Initialize Socket.IO
+initializeSocket(io)
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -162,7 +183,7 @@ app.use(globalErrorHandler)
 
 // Start Server
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   const weekStartDay = [
     'Sunday',
     'Monday',

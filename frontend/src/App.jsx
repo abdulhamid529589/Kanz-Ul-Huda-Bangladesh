@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { SocketProvider } from './context/SocketContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage2FA from './pages/RegisterPage2FA'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -15,6 +16,7 @@ import AdminUserManagementPage from './pages/AdminUserManagementPage'
 import AdminMemberManagementPage from './pages/AdminMemberManagementPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import RegistrationRequestPage from './pages/RegistrationRequestPage'
+import MessagingPage from './pages/MessagingPage'
 import Layout from './components/Layout'
 
 // Main App Content
@@ -82,6 +84,7 @@ const AppContent = () => {
       {currentPage === 'leaderboard' && <LeaderboardPage />}
       {currentPage === 'profiles' && <MemberProfilesPage />}
       {currentPage === 'settings' && <ProfileSettingsPage />}
+      {currentPage === 'messaging' && <MessagingPage />}
       {currentPage === 'admin-users' && user?.role === 'admin' && <AdminUserManagementPage />}
       {currentPage === 'admin-members' && user?.role === 'admin' && <AdminMemberManagementPage />}
       {currentPage === 'admin-settings' && user?.role === 'admin' && <AdminSettingsPage />}
@@ -93,7 +96,9 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <SocketProvider>
+        <AppContent />
+      </SocketProvider>
     </AuthProvider>
   )
 }

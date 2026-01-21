@@ -32,6 +32,8 @@ export const AuthProvider = ({ children }) => {
     setRefreshToken(null)
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
   }
 
   const refreshAccessToken = async () => {
@@ -173,6 +175,8 @@ export const AuthProvider = ({ children }) => {
         setUser(responseUser)
         localStorage.setItem('accessToken', responseAccessToken)
         localStorage.setItem('refreshToken', responseRefreshToken)
+        localStorage.setItem('userId', responseUser._id)
+        localStorage.setItem('userName', responseUser.fullName || responseUser.username)
         return { success: true }
       } else {
         // Handle validation errors
