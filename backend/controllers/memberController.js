@@ -86,9 +86,36 @@ export const getAllMembers = async (req, res) => {
       .limit(limit)
       .skip(skip)
 
+    // Calculate this year's durood for each member
+    const currentYear = new Date().getFullYear()
+    const startOfYear = new Date(currentYear, 0, 1)
+    const endOfYear = new Date(currentYear + 1, 0, 1)
+
+    const membersWithYearDurood = await Promise.all(
+      members.map(async (member) => {
+        const result = await Submission.aggregate([
+          {
+            $match: {
+              member: member._id,
+              submissionDateTime: {
+                $gte: startOfYear,
+                $lt: endOfYear,
+              },
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$duroodCount' } } },
+        ])
+
+        return {
+          ...member.toObject(),
+          thisYearDurood: result.length > 0 ? result[0].total : 0,
+        }
+      }),
+    )
+
     res.json({
       success: true,
-      data: members,
+      data: membersWithYearDurood,
       pagination: {
         page,
         limit,

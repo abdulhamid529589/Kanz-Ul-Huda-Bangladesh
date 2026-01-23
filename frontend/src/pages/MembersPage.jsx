@@ -23,7 +23,9 @@ const MembersPage = () => {
     email: '',
     city: '',
     country: '',
+    facebookUrl: '',
     status: 'active',
+    notes: '',
   })
   const [formErrors, setFormErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -88,6 +90,7 @@ const MembersPage = () => {
       country: '',
       facebookUrl: '',
       status: 'active',
+      notes: '',
     })
     setFormErrors({})
     setModal({ type: 'add', member: null })
@@ -99,6 +102,15 @@ const MembersPage = () => {
   }
 
   const handleEditMember = (member) => {
+    // Check if current user created this member
+    const creatorId = member.createdBy?._id || member.createdBy
+    const currentUserId = user?._id
+
+    if (creatorId !== currentUserId) {
+      showError('You can only edit members that you created.')
+      return
+    }
+
     setFormData(member)
     setFormErrors({})
     setModal({ type: 'edit', member })
@@ -308,9 +320,9 @@ const MembersPage = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Lifetime Durood:</span>
+                      <span className="text-gray-600 dark:text-gray-400">This Year Durood:</span>
                       <span className="text-gray-900 dark:text-white font-bold">
-                        {member.totalLifetimeDurood?.toLocaleString() || 0}
+                        {member.thisYearDurood?.toLocaleString() || 0}
                       </span>
                     </div>
                   </div>
@@ -325,7 +337,8 @@ const MembersPage = () => {
                     </button>
                     <button
                       onClick={() => handleEditMember(member)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors"
+                      disabled={!canDeleteMember(member)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <Edit className="w-4 h-4" />
                       Edit
@@ -364,7 +377,7 @@ const MembersPage = () => {
                       Status
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Lifetime Durood
+                      This Year Durood
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Actions
@@ -400,7 +413,7 @@ const MembersPage = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                        {member.totalLifetimeDurood?.toLocaleString() || 0}
+                        {member.thisYearDurood?.toLocaleString() || 0}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
@@ -413,8 +426,13 @@ const MembersPage = () => {
                           </button>
                           <button
                             onClick={() => handleEditMember(member)}
-                            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors p-1"
-                            title="Edit Member"
+                            disabled={!canDeleteMember(member)}
+                            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={
+                              canDeleteMember(member)
+                                ? 'Edit Member'
+                                : 'You can only edit members you created'
+                            }
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -607,6 +625,22 @@ const MembersPage = () => {
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  disabled={modal.type === 'view'}
+                  className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  placeholder="Add any additional notes about this member"
+                  rows="3"
+                />
               </div>
 
               {/* Created By (View Only) */}

@@ -17,32 +17,56 @@ const AdminMemberManagementPage = () => {
   const [editingMember, setEditingMember] = useState(null)
   const [bulkImportText, setBulkImportText] = useState('')
   const [formData, setFormData] = useState({
-    name: '',
-    memberNo: '',
+    fullName: '',
+    phoneNumber: '',
+    email: '',
+    city: '',
+    country: '',
+    facebookUrl: '',
     status: 'active',
+    category: 'Regular',
+    notes: '',
   })
+  const [formErrors, setFormErrors] = useState({})
 
   const fetchMembers = useCallback(async () => {
     if (!token) return
 
     setLoading(true)
     try {
-      const params = new URLSearchParams({
-        page,
-        limit: 20,
-        search: search || undefined,
-        status: statusFilter || undefined,
-      })
+      const params = new URLSearchParams()
+      params.append('page', page)
+      params.append('limit', 20)
+      if (search) params.append('search', search)
+      if (statusFilter) params.append('status', statusFilter)
 
       const res = await apiCall(`/admin/members?${params.toString()}`, {}, token)
 
-      if (res.ok) {
-        setMembers(res.data.data.members || [])
-        setTotalPages(res.data.data.pagination.pages)
+      console.log('Admin Members API Response:', {
+        ok: res.ok,
+        status: res.status,
+        dataStructure: {
+          hasData: !!res.data,
+          dataKeys: res.data ? Object.keys(res.data) : [],
+          hasNestedData: !!res.data?.data,
+          nestedDataKeys: res.data?.data ? Object.keys(res.data.data) : [],
+          membersLength: res.data?.data?.members?.length || 0,
+        },
+      })
+
+      if (res.ok && res.data?.data?.members && Array.isArray(res.data.data.members)) {
+        setMembers(res.data.data.members)
+        setTotalPages(res.data.data.pagination?.pages || 1)
+      } else {
+        const errorMsg = res.data?.message || 'Failed to load members'
+        console.error('Members fetch failed:', errorMsg, res)
+        showError(errorMsg)
+        setMembers([])
       }
     } catch (error) {
       console.error('Error fetching members:', error)
-      showError('Failed to load members')
+      showError('Failed to load members: ' + error.message)
+      setMembers([])
     } finally {
       setLoading(false)
     }
@@ -52,11 +76,25 @@ const AdminMemberManagementPage = () => {
     fetchMembers()
   }, [fetchMembers])
 
-  const handleCreateMember = async () => {
-    if (!formData.name || !formData.memberNo) {
-      showError('Please fill in all required fields')
-      return
+  const validateForm = () => {
+    const errors = {}
+    if (!formData.fullName.trim()) errors.fullName = 'Full name is required'
+    if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required'
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Invalid email format'
     }
+    if (!formData.country) errors.country = 'Country is required'
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleCreateMember = async () => {
+    if (!validateForm()) return
 
     try {
       const res = await apiCall(
@@ -69,19 +107,26 @@ const AdminMemberManagementPage = () => {
         showSuccess('Member created successfully')
         setShowModal(false)
         setFormData({
-          name: '',
-          memberNo: '',
+          fullName: '',
+          phoneNumber: '',
+          email: '',
+          city: '',
+          country: '',
+          facebookUrl: '',
           status: 'active',
+          category: 'Regular',
+          notes: '',
         })
+        setFormErrors({})
         fetchMembers()
       }
     } catch (error) {
       showError(error.message || 'Failed to create member')
     }
   }
-
   const handleUpdateMember = async () => {
     if (!editingMember) return
+    if (!validateForm()) return
 
     try {
       const res = await apiCall(
@@ -95,10 +140,17 @@ const AdminMemberManagementPage = () => {
         setShowModal(false)
         setEditingMember(null)
         setFormData({
-          name: '',
-          memberNo: '',
+          fullName: '',
+          phoneNumber: '',
+          email: '',
+          city: '',
+          country: '',
+          facebookUrl: '',
           status: 'active',
+          category: 'Regular',
+          notes: '',
         })
+        setFormErrors({})
         fetchMembers()
       }
     } catch (error) {
@@ -208,10 +260,17 @@ const AdminMemberManagementPage = () => {
             onClick={() => {
               setEditingMember(null)
               setFormData({
-                name: '',
-                memberNo: '',
+                fullName: '',
+                phoneNumber: '',
+                email: '',
+                city: '',
+                country: '',
+                facebookUrl: '',
                 status: 'active',
+                category: 'Regular',
+                notes: '',
               })
+              setFormErrors({})
               setShowModal(true)
             }}
             className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors text-xs sm:text-sm font-medium"
@@ -261,10 +320,10 @@ const AdminMemberManagementPage = () => {
             <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
               <tr>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Name
+                  Full Name
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Member No
+                  Phone Number
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Submissions
@@ -300,10 +359,10 @@ const AdminMemberManagementPage = () => {
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-gray-900 dark:text-white text-sm">
-                      {member.name}
+                      {member.fullName}
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                      {member.memberNo}
+                      {member.phoneNumber}
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                       {member.submissionCount || 0}
@@ -331,10 +390,17 @@ const AdminMemberManagementPage = () => {
                           onClick={() => {
                             setEditingMember(member)
                             setFormData({
-                              name: member.name,
-                              memberNo: member.memberNo,
+                              fullName: member.fullName,
+                              phoneNumber: member.phoneNumber,
+                              email: member.email || '',
+                              city: member.city || '',
+                              country: member.country || '',
+                              facebookUrl: member.facebookUrl || '',
                               status: member.status,
+                              category: member.category || 'Regular',
+                              notes: member.notes || '',
                             })
+                            setFormErrors({})
                             setShowModal(true)
                           }}
                           title="Edit"
@@ -391,70 +457,216 @@ const AdminMemberManagementPage = () => {
 
       {/* Create/Edit Member Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {editingMember ? 'Edit Member' : 'Add New Member'}
-            </h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md my-auto">
+            <div className="p-6 border-b dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {editingMember ? 'Edit Member' : 'Add New Member'}
+              </h2>
+            </div>
 
-            <div className="space-y-4">
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Member Name
+                  Full Name *
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    formErrors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  placeholder="Enter full name"
                 />
+                {formErrors.fullName && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.fullName}</p>
+                )}
               </div>
 
+              {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Member Number
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    formErrors.phoneNumber
+                      ? 'border-red-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  placeholder="e.g., +1-234-567-8900"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Format: +1-234-567-8900 or (123) 456-7890
+                </p>
+                {formErrors.phoneNumber && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.phoneNumber}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    formErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  placeholder="Enter email"
+                />
+                {formErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                )}
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  City
                 </label>
                 <input
                   type="text"
-                  value={formData.memberNo}
-                  onChange={(e) => setFormData({ ...formData, memberNo: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Enter city"
                 />
               </div>
 
+              {/* Country */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Country *
+                </label>
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    formErrors.country ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                >
+                  <option value="">Select country</option>
+                  <option value="Bangladesh">Bangladesh</option>
+                  <option value="UAE">UAE</option>
+                  <option value="UK">UK</option>
+                  <option value="USA">USA</option>
+                  <option value="Pakistan">Pakistan</option>
+                  <option value="India">India</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Australia">Australia</option>
+                </select>
+                {formErrors.country && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.country}</p>
+                )}
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="Regular">Regular</option>
+                  <option value="VIP">VIP</option>
+                  <option value="Prospect">Prospect</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Facebook URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Facebook URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  name="facebookUrl"
+                  value={formData.facebookUrl}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://facebook.com/yourprofile"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Format: https://facebook.com/username or https://facebook.com/profile.php?id=...
+                </p>
+              </div>
+
+              {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status
                 </label>
                 <select
+                  name="status"
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Add any additional notes about this member"
+                  rows="3"
+                />
+              </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 p-6 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
               <button
                 onClick={() => {
                   setShowModal(false)
                   setEditingMember(null)
                   setFormData({
-                    name: '',
-                    memberNo: '',
+                    fullName: '',
+                    phoneNumber: '',
+                    email: '',
+                    city: '',
+                    country: '',
+                    facebookUrl: '',
                     status: 'active',
+                    category: 'Regular',
+                    notes: '',
                   })
+                  setFormErrors({})
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={editingMember ? handleUpdateMember : handleCreateMember}
-                className="flex-1 px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                className="flex-1 px-4 py-2 text-sm bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium"
               >
                 {editingMember ? 'Update Member' : 'Add Member'}
               </button>

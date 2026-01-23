@@ -6,7 +6,7 @@ import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
 import { showError, showSuccess, confirmAction } from '../utils/toast'
 
 const SubmissionsPage = () => {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [submissions, setSubmissions] = useState([])
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,15 +23,24 @@ const SubmissionsPage = () => {
     notes: '',
   })
 
+  // Check if today is Friday (Bangladesh time - UTC+6)
+  const isFriday = () => {
+    const bangladeshTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }))
+    const day = bangladeshTime.getDay()
+    return day === 5 // 5 = Friday
+  }
+
+  const canSubmit = isFriday()
+
   // Fetch submissions and members
   const fetchData = useCallback(async () => {
-    if (!token) return
+    if (!token || !user?._id) return
 
     setLoading(true)
     try {
       const [submissionsRes, membersRes] = await Promise.all([
         apiCall('/submissions?limit=100', {}, token),
-        apiCall('/members?limit=1000', {}, token),
+        apiCall(`/members?limit=1000&createdBy=${user._id}`, {}, token),
       ])
 
       if (submissionsRes.ok) setSubmissions(submissionsRes.data.data || [])
@@ -41,7 +50,7 @@ const SubmissionsPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, user?._id])
 
   useEffect(() => {
     fetchData()
@@ -50,6 +59,11 @@ const SubmissionsPage = () => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!canSubmit) {
+      showError('Submissions are only allowed on Friday (Bangladesh time)')
+      return
+    }
 
     if (!formData.memberId || !formData.duroodCount) {
       showError('Please fill all required fields')
@@ -83,7 +97,9 @@ const SubmissionsPage = () => {
         setEditingId(null)
         setShowForm(false)
         fetchData()
-        showSuccess(editingId ? 'Submission updated successfully!' : 'Submission created successfully!')
+        showSuccess(
+          editingId ? 'Submission updated successfully!' : 'Submission created successfully!',
+        )
       } else {
         showError(response.data.message || 'Error saving submission')
       }
@@ -125,10 +141,14 @@ const SubmissionsPage = () => {
 
   // Filter submissions
   const filteredSubmissions = submissions.filter((sub) => {
+    // Only show submissions for members created by current user
+    const memberIds = members.map((m) => m._id)
+    const isMyMember = memberIds.includes(sub.member?._id)
+
     const memberName = sub.member?.fullName.toLowerCase() || ''
     const matchesSearch = memberName.includes(searchTerm.toLowerCase())
     const matchesMember = !filterMember || sub.member?._id === filterMember
-    return matchesSearch && matchesMember
+    return isMyMember && matchesSearch && matchesMember
   })
 
   if (loading) {
@@ -143,16 +163,25 @@ const SubmissionsPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          Submissions
-        </h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            Submissions
+          </h1>
+          {!canSubmit && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+              ⚠️ Submissions are only available on Friday (Bangladesh time)
+            </p>
+          )}
+        </div>
         <button
           onClick={() => {
             setShowForm(!showForm)
             setEditingId(null)
             setFormData({ memberId: '', duroodCount: '', notes: '' })
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors w-full sm:w-auto justify-center text-sm sm:text-base"
+          disabled={!canSubmit}
+          title={!canSubmit ? 'Submissions are only allowed on Friday' : 'Create new submission'}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors w-full sm:w-auto justify-center text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>New Submission</span>

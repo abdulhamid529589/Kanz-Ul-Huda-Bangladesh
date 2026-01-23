@@ -1,5 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CheckCircle, Clock, Calendar, TrendingUp, BarChart3, Bell, UserCheck } from 'lucide-react'
+import {
+  CheckCircle,
+  Clock,
+  Calendar,
+  TrendingUp,
+  BarChart3,
+  Bell,
+  UserCheck,
+  Phone,
+  Mail,
+  MapPin,
+  X,
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
@@ -11,6 +23,7 @@ const Dashboard = () => {
   const [pendingMembers, setPendingMembers] = useState([])
   const [pendingRegistrationRequests, setPendingRegistrationRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedContactMember, setSelectedContactMember] = useState(null)
 
   const fetchDashboardData = useCallback(async () => {
     if (!token) return
@@ -331,6 +344,7 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <motion.button
+                      onClick={() => setSelectedContactMember(member)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="px-3 py-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded text-sm font-medium transition-all shadow-md hover:shadow-lg"
@@ -407,6 +421,113 @@ const Dashboard = () => {
             )}
           </div>
         </motion.div>
+
+        {/* Contact Information Modal */}
+        {selectedContactMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedContactMember(null)}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Contact Information
+                </h2>
+                <button
+                  onClick={() => setSelectedContactMember(null)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {/* Member Name */}
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">Name</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {selectedContactMember.fullName}
+                  </p>
+                </div>
+
+                {/* Phone Number */}
+                <div className="flex items-start gap-3">
+                  <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Phone</p>
+                    <a
+                      href={`tel:${selectedContactMember.phoneNumber}`}
+                      className="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {selectedContactMember.phoneNumber}
+                    </a>
+                  </div>
+                </div>
+
+                {/* Email */}
+                {selectedContactMember.email && (
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Email</p>
+                      <a
+                        href={`mailto:${selectedContactMember.email}`}
+                        className="text-lg font-semibold text-green-600 dark:text-green-400 hover:underline break-all"
+                      >
+                        {selectedContactMember.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Location */}
+                {(selectedContactMember.city || selectedContactMember.country) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        Location
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {selectedContactMember.city ? `${selectedContactMember.city}, ` : ''}
+                        {selectedContactMember.country}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Actions */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <a
+                    href={`tel:${selectedContactMember.phoneNumber}`}
+                    className="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-center transition-colors"
+                  >
+                    Call
+                  </a>
+                  {selectedContactMember.email && (
+                    <a
+                      href={`mailto:${selectedContactMember.email}`}
+                      className="block w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-center transition-colors"
+                    >
+                      Send Email
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
     </div>
   )

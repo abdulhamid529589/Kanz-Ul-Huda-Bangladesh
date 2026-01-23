@@ -3,12 +3,30 @@ import Member from '../models/Member.js'
 import { getCurrentWeek, getWeekForDate, formatWeekDisplay } from '../utils/weekHelper.js'
 
 /**
+ * @desc    Check if current day is Friday (Bangladesh time - UTC+6)
+ * @returns {boolean}
+ */
+const isFriday = () => {
+  const bangladeshDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }))
+  const day = bangladeshDate.getDay()
+  return day === 5 // 5 = Friday
+}
+
+/**
  * @desc    Create new submission
  * @route   POST /api/submissions
  * @access  Private
  */
 export const createSubmission = async (req, res) => {
   try {
+    // Check if today is Friday
+    if (!isFriday()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Submissions are only allowed on Friday (Bangladesh time)',
+      })
+    }
+
     const { memberId, duroodCount, weekStartDate, notes } = req.body
 
     // Validate inputs
@@ -209,6 +227,14 @@ export const getCurrentWeekSubmissions = async (req, res) => {
  */
 export const updateSubmission = async (req, res) => {
   try {
+    // Check if today is Friday
+    if (!isFriday()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Submissions can only be edited on Friday (Bangladesh time)',
+      })
+    }
+
     const { duroodCount, notes } = req.body
 
     let submission = await Submission.findById(req.params.id)
@@ -265,6 +291,14 @@ export const updateSubmission = async (req, res) => {
  */
 export const deleteSubmission = async (req, res) => {
   try {
+    // Check if today is Friday
+    if (!isFriday()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Submissions can only be deleted on Friday (Bangladesh time)',
+      })
+    }
+
     const submission = await Submission.findById(req.params.id)
 
     if (!submission) {
@@ -311,16 +345,34 @@ export const getPendingMembers = async (req, res) => {
   try {
     const { weekStartDate, weekEndDate } = getCurrentWeek()
 
+    // Return empty list if not Friday
+    if (!isFriday()) {
+      return res.json({
+        success: true,
+        data: {
+          week: {
+            startDate: weekStartDate,
+            endDate: weekEndDate,
+            display: formatWeekDisplay(weekStartDate, weekEndDate),
+          },
+          pendingMembers: [],
+          totalPending: 0,
+          message: 'Pending members list is only available on Friday (Bangladesh time)',
+        },
+      })
+    }
+
     // Get all submitted member IDs for current week
     const submittedMemberIds = await Submission.distinct('member', {
       weekStartDate,
       weekEndDate,
     })
 
-    // Get active members who haven't submitted
+    // Get active members created by current user who haven't submitted
     const pendingMembers = await Member.find({
       _id: { $nin: submittedMemberIds },
       status: 'active',
+      createdBy: req.user.id, // Filter by current user
     })
       .select('fullName phoneNumber country city lastSubmissionDate')
       .sort({ fullName: 1 })

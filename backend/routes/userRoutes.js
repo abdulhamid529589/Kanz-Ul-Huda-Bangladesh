@@ -7,8 +7,8 @@ const router = express.Router()
 
 router.use(protect)
 
-// Get all users (admin only)
-router.get('/', authorize('admin'), async (req, res) => {
+// Get all users (available to all authenticated users)
+router.get('/', async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 })
     res.json({ success: true, data: users })

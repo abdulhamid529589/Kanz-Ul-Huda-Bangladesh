@@ -77,7 +77,7 @@ export const getUserById = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const createUserAsAdmin = asyncHandler(async (req, res) => {
-  const { username, email, fullName, password, role = 'collector' } = req.body
+  const { username, email, fullName, password, phone, role = 'collector' } = req.body
 
   // Validate input
   if (!username || !email || !fullName || !password) {
@@ -104,6 +104,11 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
     throw new AppError('Full name must be at least 2 characters', 400)
   }
 
+  // Validate phone format if provided
+  if (phone && !/^[\d\s\-\+\(\)]*$/.test(phone)) {
+    throw new AppError('Please enter a valid phone number', 400)
+  }
+
   // Check if username exists
   if (await User.findOne({ username: username.toLowerCase() })) {
     throw new AppError('Username already exists', 400)
@@ -125,6 +130,7 @@ export const createUserAsAdmin = asyncHandler(async (req, res) => {
     email: email.toLowerCase(),
     fullName: fullName.trim(),
     password,
+    phone: phone || null,
     role,
     status: 'active',
     createdBy: req.user._id,

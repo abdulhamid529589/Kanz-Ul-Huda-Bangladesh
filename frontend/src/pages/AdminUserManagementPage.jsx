@@ -20,6 +20,7 @@ const AdminUserManagementPage = () => {
     email: '',
     fullName: '',
     password: '',
+    phone: '',
     role: 'collector',
   })
 
@@ -62,6 +63,12 @@ const AdminUserManagementPage = () => {
     // Validate all required fields
     if (!formData.username || !formData.email || !formData.fullName || !formData.password) {
       showError('Please fill in all required fields')
+      return
+    }
+
+    // Validate phone number format if provided
+    if (formData.phone && !/^[\d\s\-\+\(\)]*$/.test(formData.phone)) {
+      showError('Please enter a valid phone number')
       return
     }
 
@@ -127,6 +134,7 @@ const AdminUserManagementPage = () => {
       email: '',
       fullName: '',
       password: '',
+      phone: '',
       role: 'collector',
     })
     setEditingUser(null)
@@ -317,6 +325,17 @@ const AdminUserManagementPage = () => {
                       {user.email}
                     </p>
                   </div>
+
+                  {user.phone && (
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                        Phone Number
+                      </p>
+                      <p className="text-sm sm:text-base text-gray-900 dark:text-white break-all">
+                        {user.phone}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -603,6 +622,22 @@ const AdminUserManagementPage = () => {
                     Please enter a valid email address
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+                  Mobile Phone Number (Optional)
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+1-234-567-8900 or (123) 456-7890"
+                  className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Format: +1-234-567-8900 or (123) 456-7890
+                </p>
               </div>
 
               <div>

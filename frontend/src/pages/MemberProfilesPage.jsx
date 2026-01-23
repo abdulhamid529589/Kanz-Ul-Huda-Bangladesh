@@ -39,16 +39,28 @@ const MemberProfilesPage = () => {
   // Get member stats
   const getMemberStats = (memberId) => {
     const memberSubs = submissions.filter((sub) => sub.member?._id === memberId)
-    const totalDurood = memberSubs.reduce((sum, sub) => sum + sub.duroodCount, 0)
-    const avgPerSubmission = memberSubs.length > 0 ? Math.round(totalDurood / memberSubs.length) : 0
-    const lastSubmission = memberSubs.length > 0 ? memberSubs[0] : null
+
+    // Filter for current year (2026)
+    const currentYear = new Date().getFullYear()
+    const yearStartDate = new Date(currentYear, 0, 1)
+    const yearEndDate = new Date(currentYear, 11, 31, 23, 59, 59)
+
+    const thisYearSubs = memberSubs.filter((sub) => {
+      const subDate = new Date(sub.submissionDateTime)
+      return subDate >= yearStartDate && subDate <= yearEndDate
+    })
+
+    const totalDurood = thisYearSubs.reduce((sum, sub) => sum + sub.duroodCount, 0)
+    const avgPerSubmission =
+      thisYearSubs.length > 0 ? Math.round(totalDurood / thisYearSubs.length) : 0
+    const lastSubmission = thisYearSubs.length > 0 ? thisYearSubs[0] : null
 
     return {
       totalDurood,
-      submissions: memberSubs.length,
+      submissions: thisYearSubs.length,
       avgPerSubmission,
       lastSubmission,
-      recentSubmissions: memberSubs.slice(0, 5),
+      recentSubmissions: thisYearSubs.slice(0, 5),
     }
   }
 
@@ -212,6 +224,19 @@ const MemberProfilesPage = () => {
                       </span>
                     </div>
                   )}
+                  {selectedMember.facebookUrl && (
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <a
+                        href={selectedMember.facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 dark:text-primary-400 hover:underline"
+                      >
+                        Facebook Profile
+                      </a>
+                    </div>
+                  )}
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     <span className="text-gray-700 dark:text-gray-300">
@@ -220,6 +245,73 @@ const MemberProfilesPage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Member Details */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Member Details
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                      {selectedMember.status}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Category</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {selectedMember.category || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">This Year Durood</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {formatNumber(selectedStats.totalDurood)}
+                    </p>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Submissions</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {selectedStats.submissions}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Created By Information */}
+              {selectedMember.createdBy && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Created By
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {selectedMember.createdBy.fullName}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        @{selectedMember.createdBy.username}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedMember.notes && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Notes
+                  </h3>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    {selectedMember.notes}
+                  </p>
+                </div>
+              )}
 
               {/* Statistics */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
