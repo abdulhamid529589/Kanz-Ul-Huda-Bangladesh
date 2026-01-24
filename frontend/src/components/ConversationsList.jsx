@@ -59,61 +59,63 @@ export const ConversationsList = ({ onSelectConversation, onCreateGroup }) => {
   }
 
   return (
-    <div className="w-full max-w-md bg-slate-900 rounded-lg shadow-2xl flex flex-col h-full border border-slate-800">
-      {/* Header - Dark Gradient */}
-      <div className="p-4 border-b border-slate-800 bg-gradient-to-r from-blue-600 via-purple-600 to-slate-800 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Messages</h1>
+    <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl shadow-2xl flex flex-col h-full border border-slate-800/50">
+      {/* Header - Modern gradient with glassmorphism */}
+      <div className="p-3 sm:p-4 md:p-5 border-b border-slate-800/50 bg-gradient-to-r from-blue-600/80 via-purple-600/80 to-blue-700/80 shadow-xl backdrop-blur-sm rounded-t-xl">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
+            Messages
+          </h1>
           <button
             onClick={onCreateGroup}
-            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-lg shadow-blue-600/20"
+            className="bg-blue-600 hover:bg-blue-700 text-white p-2 sm:p-2.5 rounded-lg transition shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 backdrop-blur-sm flex-shrink-0"
             title="Create group"
           >
-            <Plus size={20} />
+            <Plus size={18} className="sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-3 relative">
-          <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
+        <div className="mb-3 sm:mb-4 relative">
+          <Search size={14} className="absolute left-3 top-3 text-slate-400" />
           <input
             type="text"
-            placeholder="Search conversations..."
+            placeholder="🔍 Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-800/70 border border-slate-700/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-xs sm:text-sm transition backdrop-blur-sm"
           />
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap backdrop-blur-sm ${
               filter === 'all'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700 border border-slate-700/50'
             }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('groups')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition flex items-center gap-1 whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 whitespace-nowrap backdrop-blur-sm ${
               filter === 'groups'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700 border border-slate-700/50'
             }`}
           >
-            <Users size={14} />
-            Groups
+            <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
+            <span className="hidden sm:inline">Groups</span>
           </button>
           <button
             onClick={() => setFilter('unread')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap backdrop-blur-sm ${
               filter === 'unread'
-                ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700 border border-slate-700/50'
             }`}
           >
             Unread
@@ -144,29 +146,29 @@ export const ConversationsList = ({ onSelectConversation, onCreateGroup }) => {
             <button
               key={conversation._id}
               onClick={() => onSelectConversation(conversation)}
-              className="w-full p-4 border-b border-slate-800 hover:bg-slate-800/50 transition text-left group"
+              className="w-full p-3 sm:p-4 border-b border-slate-800/50 hover:bg-slate-800/40 transition text-left group backdrop-blur-sm"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2 sm:gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-slate-100 truncate group-hover:text-blue-400 transition">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-slate-100 truncate group-hover:text-blue-400 transition text-sm">
                       {conversation.name}
                     </h3>
                     {conversation.isGroup && (
-                      <span className="inline-flex items-center gap-1 bg-purple-600/30 text-purple-300 text-xs px-2 py-1 rounded-full border border-purple-600/50">
-                        <Users size={12} />
-                        {conversation.participants.length}
+                      <span className="inline-flex items-center gap-1 bg-purple-600/30 text-purple-300 text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-purple-600/50 flex-shrink-0">
+                        <Users size={10} className="sm:w-[12px] sm:h-[12px]" />
+                        <span className="hidden sm:inline">{conversation.participants.length}</span>
                       </span>
                     )}
                   </div>
 
                   {conversation.lastMessage && (
-                    <p className="text-sm text-slate-400 truncate mt-1">
-                      {conversation.lastMessage.content || 'Media message'}
+                    <p className="text-xs text-slate-400 truncate mt-1 sm:mt-1.5 leading-relaxed">
+                      {conversation.lastMessage.content || '📎 Media message'}
                     </p>
                   )}
 
-                  <p className="text-xs text-slate-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1 sm:mt-1.5 font-medium">
                     {conversation.lastMessageAt &&
                       new Date(conversation.lastMessageAt).toLocaleDateString()}
                   </p>
@@ -174,7 +176,7 @@ export const ConversationsList = ({ onSelectConversation, onCreateGroup }) => {
 
                 {conversation.unreadCounts &&
                   Object.values(conversation.unreadCounts).some((count) => count > 0) && (
-                    <div className="ml-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg shadow-red-600/30">
+                    <div className="ml-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center text-xs font-bold shadow-lg shadow-red-600/40 flex-shrink-0">
                       {Object.values(conversation.unreadCounts).reduce((a, b) => a + b, 0)}
                     </div>
                   )}

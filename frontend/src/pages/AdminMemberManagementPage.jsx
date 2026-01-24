@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Trash2, Edit, Plus, Search, Upload } from 'lucide-react'
+import { Trash2, Edit, Plus, Search, Upload, Download } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall } from '../utils/api'
 import { showError, showSuccess } from '../utils/toast'
+import { BulkOperationsModal } from '../components/BulkOperations'
+import { useAdminShortcuts } from '../components/AdminShortcuts'
+import { useBulkOperations } from '../hooks/useBulkOperations'
 
 const AdminMemberManagementPage = () => {
   const { token } = useAuth()
@@ -16,6 +19,9 @@ const AdminMemberManagementPage = () => {
   const [showBulkImportModal, setShowBulkImportModal] = useState(false)
   const [editingMember, setEditingMember] = useState(null)
   const [bulkImportText, setBulkImportText] = useState('')
+  const [selectedMembers, setSelectedMembers] = useState(new Set())
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  const { exportToCSV, processBulkOperation } = useBulkOperations()
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -75,6 +81,22 @@ const AdminMemberManagementPage = () => {
   useEffect(() => {
     fetchMembers()
   }, [fetchMembers])
+
+  // Admin shortcuts handler
+  useAdminShortcuts({
+    onBulk: () => {
+      if (selectedMembers.size > 0) setShowBulkModal(true)
+    },
+    onExport: () => {
+      exportToCSV(members, 'members_export')
+    },
+    onRefresh: fetchMembers,
+    onNew: () => setShowModal(true),
+    onSearch: () => {
+      const searchInput = document.querySelector('input[placeholder*="Search"]')
+      searchInput?.focus()
+    },
+  })
 
   const validateForm = () => {
     const errors = {}
@@ -242,6 +264,82 @@ const AdminMemberManagementPage = () => {
 
   return (
     <div className="space-y-6 px-3 sm:px-4 md:px-0">
+      {/* Bulk Selection Toolbar */}
+      {selectedMembers.size > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm font-medium text-blue-900 dark:text-blue-200">
+            {selectedMembers.size} member{selectedMembers.size !== 1 ? 's' : ''} selected
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedMembers(new Set())}
+              className="px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Bulk Actions
+            </button>
+            <button
+              onClick={() => {
+                const selectedData = Array.from(selectedMembers).map((id) =>
+                  members.find((m) => m._id === id),
+                )
+                exportToCSV(selectedData, 'selected_members_export')
+              }}
+              className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Operations Modal */}
+      {showBulkModal && (
+        <BulkOperations
+          selectedItems={Array.from(selectedMembers).map((id) => ({
+            _id: id,
+            username: members.find((m) => m._id === id)?.fullName,
+          }))}
+          onClose={() => {
+            setShowBulkModal(false)
+          }}
+          onProcessOperation={async (operation) => {
+            const selectedData = Array.from(selectedMembers).map((id) =>
+              members.find((m) => m._id === id),
+            )
+
+            const apiCallFunc = async (item) => {
+              if (operation === 'activate' || operation === 'deactivate') {
+                return apiCall(
+                  `/admin/members/${item._id}`,
+                  {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                      status: operation === 'activate' ? 'active' : 'inactive',
+                    }),
+                  },
+                  token,
+                )
+              } else if (operation === 'delete') {
+                return apiCall(`/admin/members/${item._id}`, { method: 'DELETE' }, token)
+              }
+            }
+
+            await processBulkOperation(selectedData, operation, apiCallFunc, token)
+            setSelectedMembers(new Set())
+            setShowBulkModal(false)
+            fetchMembers()
+            showSuccess(`${operation} completed successfully`)
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
@@ -320,6 +418,20 @@ const AdminMemberManagementPage = () => {
             <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
               <tr>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={selectedMembers.size === members.length && members.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedMembers(new Set(members.map((m) => m._id)))
+                      } else {
+                        setSelectedMembers(new Set())
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                  />
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Full Name
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -358,6 +470,22 @@ const AdminMemberManagementPage = () => {
                     key={member._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
+                    <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedMembers.has(member._id)}
+                        onChange={(e) => {
+                          const newSet = new Set(selectedMembers)
+                          if (e.target.checked) {
+                            newSet.add(member._id)
+                          } else {
+                            newSet.delete(member._id)
+                          }
+                          setSelectedMembers(newSet)
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-gray-900 dark:text-white text-sm">
                       {member.fullName}
                     </td>

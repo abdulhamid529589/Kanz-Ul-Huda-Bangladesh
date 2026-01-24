@@ -1,8 +1,22 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Trash2, Edit, Plus, Search, Filter, Crown, CheckCircle, AlertCircle } from 'lucide-react'
+import {
+  Trash2,
+  Edit,
+  Plus,
+  Search,
+  Filter,
+  Crown,
+  CheckCircle,
+  AlertCircle,
+  Download,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber } from '../utils/api'
 import { showError, showSuccess } from '../utils/toast'
+import AdminFilters from '../components/AdminFilters'
+import { BulkOperationsModal } from '../components/BulkOperations'
+import { useAdminShortcuts } from '../components/AdminShortcuts'
+import { useBulkOperations } from '../hooks/useBulkOperations'
 
 const AdminUserManagementPage = () => {
   const { token, isMainAdmin, user: currentUser } = useAuth()
@@ -15,6 +29,9 @@ const AdminUserManagementPage = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+  const [selectedUsers, setSelectedUsers] = useState(new Set())
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  const { exportToCSV } = useBulkOperations()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -54,6 +71,22 @@ const AdminUserManagementPage = () => {
       setLoading(false)
     }
   }, [token, page, search, roleFilter, statusFilter])
+
+  // Admin shortcuts handler
+  useAdminShortcuts({
+    onBulk: () => {
+      if (selectedUsers.size > 0) setShowBulkModal(true)
+    },
+    onExport: () => {
+      exportToCSV(users, 'users_export')
+    },
+    onRefresh: fetchUsers,
+    onNew: () => setShowModal(true),
+    onSearch: () => {
+      const searchInput = document.querySelector('input[placeholder="Search users..."]')
+      searchInput?.focus()
+    },
+  })
 
   useEffect(() => {
     fetchUsers()
@@ -224,6 +257,62 @@ const AdminUserManagementPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Bulk Selection Toolbar */}
+      {selectedUsers.size > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm font-medium text-blue-900 dark:text-blue-200">
+            {selectedUsers.size} user{selectedUsers.size !== 1 ? 's' : ''} selected
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedUsers(new Set())}
+              className="px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Bulk Actions
+            </button>
+            <button
+              onClick={() => {
+                const selectedData = Array.from(selectedUsers).map((id) =>
+                  users.find((u) => u._id === id),
+                )
+                exportToCSV(selectedData, 'selected_users_export')
+              }}
+              className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Operations Modal */}
+      {showBulkModal && (
+        <BulkOperationsModal
+          isOpen={showBulkModal}
+          items={Array.from(selectedUsers).map((id) => ({
+            _id: id,
+            username: users.find((u) => u._id === id)?.username,
+          }))}
+          onClose={() => {
+            setShowBulkModal(false)
+          }}
+          apiToken={token}
+          onSuccess={async () => {
+            setSelectedUsers(new Set())
+            setShowBulkModal(false)
+            fetchUsers()
+            showSuccess('Operation completed successfully')
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 px-3 sm:px-0">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
@@ -292,7 +381,25 @@ const AdminUserManagementPage = () => {
           </div>
         ) : (
           users.map((user) => (
-            <div key={user._id} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div key={user._id} className="grid grid-cols-1 lg:grid-cols-2 gap-4 relative">
+              {/* Checkbox */}
+              <div className="absolute -left-6 top-4 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedUsers.has(user._id)}
+                  onChange={(e) => {
+                    const newSet = new Set(selectedUsers)
+                    if (e.target.checked) {
+                      newSet.add(user._id)
+                    } else {
+                      newSet.delete(user._id)
+                    }
+                    setSelectedUsers(newSet)
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                />
+              </div>
+
               {/* Card 1: Username, Full Name, Email */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">

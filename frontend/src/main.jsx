@@ -6,6 +6,36 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ThemeProvider } from './context/ThemeContext'
 import './index.css'
 
+// Register Service Worker for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js', { scope: '/' })
+      .then((registration) => {
+        console.log('✓ Service Worker registered:', registration)
+
+        // Check for updates every 60 seconds
+        setInterval(() => {
+          registration.update()
+        }, 60000)
+
+        // Listen for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated' && confirm('New version available! Reload?')) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' })
+              window.location.reload()
+            }
+          })
+        })
+      })
+      .catch((error) => {
+        console.error('✗ Service Worker registration failed:', error)
+      })
+  })
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>

@@ -42,6 +42,7 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
   ]
 
   const adminNavigation = [
+    { id: 'admin-dashboard', name: 'Admin Dashboard', icon: BarChart3 },
     { id: 'admin-users', name: 'Admin: Users', icon: Users },
     { id: 'admin-members', name: 'Admin: Members', icon: Users },
     { id: 'admin-settings', name: 'Admin: Settings', icon: Settings },

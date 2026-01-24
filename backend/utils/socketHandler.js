@@ -1,24 +1,44 @@
 import Message from '../models/Message.js'
 import Conversation from '../models/Conversation.js'
+import UserStatus from '../models/UserStatus.js'
+import Notification from '../models/Notification.js'
 import logger from './logger.js'
 
 // Map to store online users: userId -> [socketIds]
 const userSockets = new Map()
+// Map to store user status
+const userStatusMap = new Map()
 
 export const initializeSocket = (io) => {
   io.on('connection', (socket) => {
     logger.info(`User connected: ${socket.id}`)
 
     // User comes online
-    socket.on('user_online', (userId) => {
+    socket.on('user_online', async (userId) => {
       if (!userSockets.has(userId)) {
         userSockets.set(userId, [])
       }
       userSockets.get(userId).push(socket.id)
       socket.userId = userId
 
+      // Update user status in database
+      await UserStatus.findOneAndUpdate(
+        { userId },
+        {
+          status: 'online',
+          lastSeen: new Date(),
+        },
+        { upsert: true },
+      )
+
+      // Update in-memory map
+      userStatusMap.set(userId, {
+        status: 'online',
+        lastSeen: new Date(),
+      })
+
       // Notify all users that someone is online
-      io.emit('user_status', { userId, status: 'online' })
+      io.emit('user_status', { userId, status: 'online', timestamp: new Date() })
       logger.info(`User ${userId} is now online`)
     })
 
@@ -88,15 +108,287 @@ export const initializeSocket = (io) => {
     })
 
     // Typing indicator
-    socket.on('typing', (data) => {
-      const { conversationId, isTyping, userName } = data
+    socket.on('typing', async (data) => {
+      const { conversationId, isTyping, userName, userId } = data
+
+      // Update typing status
+      await UserStatus.findOneAndUpdate(
+        { userId },
+        {
+          isTyping,
+          currentConversation: isTyping ? conversationId : null,
+        },
+        { upsert: true },
+      )
 
       io.to(`conversation_${conversationId}`).emit('user_typing', {
-        userId: socket.userId,
+        userId,
         userName,
         isTyping,
         timestamp: new Date(),
       })
+    })
+
+    // ========================================
+    // 🔔 STATUS MANAGEMENT HANDLERS
+    // ========================================
+
+    // Update user status (online/away/offline)
+    socket.on('status_update', async (data) => {
+      const { userId, status, customStatus } = data
+
+      await UserStatus.findOneAndUpdate(
+        { userId },
+        {
+          status,
+          customStatus: customStatus || '',
+          lastSeen: new Date(),
+        },
+        { upsert: true },
+      )
+
+      userStatusMap.set(userId, {
+        status,
+        customStatus,
+        lastSeen: new Date(),
+      })
+
+      // Broadcast status change to all users
+      io.emit('user_status_changed', {
+        userId,
+        status,
+        customStatus,
+        timestamp: new Date(),
+      })
+
+      logger.info(`User ${userId} status changed to ${status}`)
+    })
+
+    // ========================================
+    // 😊 REACTION HANDLERS
+    // ========================================
+
+    // Reaction already handled in socket handler, but add notification
+    socket.on('reaction_added', async (data) => {
+      try {
+        const { messageId, conversationId, emoji, userId, senderName } = data
+
+        // Create notification for message sender
+        const message = await Message.findById(messageId).populate('senderId')
+
+        if (message && message.senderId._id.toString() !== userId) {
+          await Notification.create({
+            userId: message.senderId._id,
+            conversationId,
+            messageId,
+            type: 'message',
+            title: `${senderName} reacted with ${emoji}`,
+            body: `${message.content.substring(0, 50)}...`,
+            senderName,
+            groupName: (await Conversation.findById(conversationId)).name,
+          })
+
+          // Emit notification to user
+          io.to(`user_${message.senderId._id}`).emit('new_notification', {
+            type: 'reaction',
+            emoji,
+            senderName,
+            messageId,
+          })
+        }
+      } catch (error) {
+        logger.error('Error handling reaction notification:', error)
+      }
+    })
+
+    // ========================================
+    // 🔔 NOTIFICATION HANDLERS
+    // ========================================
+
+    // Create notification
+    socket.on('create_notification', async (data) => {
+      try {
+        const { userId, conversationId, type, title, body, senderName, groupName } = data
+
+        const notification = await Notification.create({
+          userId,
+          conversationId,
+          type,
+          title,
+          body,
+          senderName,
+          groupName,
+        })
+
+        // Send to user if online
+        io.to(`user_${userId}`).emit('new_notification', notification)
+
+        logger.info(`Notification created for user ${userId}`)
+      } catch (error) {
+        logger.error('Error creating notification:', error)
+      }
+    })
+
+    // Join user room for direct notifications
+    socket.on('join_user_room', (userId) => {
+      socket.join(`user_${userId}`)
+      logger.info(`User ${userId} joined personal notification room`)
+    })
+
+    // Leave user room
+    socket.on('leave_user_room', (userId) => {
+      socket.leave(`user_${userId}`)
+      logger.info(`User ${userId} left personal notification room`)
+    })
+
+    // ========================================
+    // 👥 GROUP MANAGEMENT HANDLERS
+    // ========================================
+
+    // Group created notification
+    socket.on('group_created', async (data) => {
+      try {
+        const { conversationId, groupName, creatorName, participantIds } = data
+
+        // Create notifications for all participants
+        for (const participantId of participantIds) {
+          if (participantId !== data.creatorId) {
+            await Notification.create({
+              userId: participantId,
+              conversationId,
+              type: 'group_created',
+              title: `New group: ${groupName}`,
+              body: `${creatorName} created the group`,
+              senderName: creatorName,
+              groupName,
+            })
+
+            // Send to user if online
+            io.to(`user_${participantId}`).emit('new_notification', {
+              type: 'group_created',
+              groupName,
+              creatorName,
+              conversationId,
+            })
+          }
+        }
+
+        logger.info(`Group ${groupName} created notifications sent`)
+      } catch (error) {
+        logger.error('Error handling group created:', error)
+      }
+    })
+
+    // Member added to group
+    socket.on('member_added', async (data) => {
+      try {
+        const { conversationId, memberId, memberName, addedByName, groupName } = data
+
+        const notification = await Notification.create({
+          userId: memberId,
+          conversationId,
+          type: 'member_added',
+          title: `Added to ${groupName}`,
+          body: `${addedByName} added you to the group`,
+          senderName: addedByName,
+          groupName,
+        })
+
+        // Broadcast to group
+        io.to(`conversation_${conversationId}`).emit('new_notification', {
+          type: 'member_added',
+          memberName,
+          groupName,
+          message: `${addedByName} added ${memberName} to the group`,
+        })
+
+        logger.info(`Member ${memberName} added to group ${groupName}`)
+      } catch (error) {
+        logger.error('Error handling member added:', error)
+      }
+    })
+
+    // Member removed from group
+    socket.on('member_removed', async (data) => {
+      try {
+        const { conversationId, memberId, memberName, removedByName, groupName } = data
+
+        const notification = await Notification.create({
+          userId: memberId,
+          conversationId,
+          type: 'member_removed',
+          title: `Removed from ${groupName}`,
+          body: `${removedByName} removed you from the group`,
+          senderName: removedByName,
+          groupName,
+        })
+
+        // Broadcast to group
+        io.to(`conversation_${conversationId}`).emit('new_notification', {
+          type: 'member_removed',
+          memberName,
+          groupName,
+          message: `${removedByName} removed ${memberName} from the group`,
+        })
+
+        logger.info(`Member ${memberName} removed from group ${groupName}`)
+      } catch (error) {
+        logger.error('Error handling member removed:', error)
+      }
+    })
+
+    // Group info updated
+    socket.on('group_info_updated', async (data) => {
+      try {
+        const { conversationId, groupName, updatedByName, changes } = data
+
+        // Broadcast update to group
+        io.to(`conversation_${conversationId}`).emit('group_updated', {
+          conversationId,
+          groupName,
+          updatedByName,
+          changes,
+          timestamp: new Date(),
+        })
+
+        logger.info(`Group ${groupName} info updated`)
+      } catch (error) {
+        logger.error('Error handling group update:', error)
+      }
+    })
+
+    // ========================================
+    // 🔍 SEARCH HANDLERS
+    // ========================================
+
+    // Search messages (handled via REST API)
+    socket.on('search_messages', async (data) => {
+      try {
+        const { conversationId, query, requestId } = data
+
+        if (!query || query.trim() === '') {
+          socket.emit('search_error', { requestId, message: 'Query required' })
+          return
+        }
+
+        const messages = await Message.find({
+          conversationId,
+          content: { $regex: query, $options: 'i' },
+        })
+          .limit(50)
+          .populate('senderId', 'fullName profileImage')
+
+        socket.emit('search_results', {
+          requestId,
+          messages,
+          count: messages.length,
+        })
+
+        logger.info(`Search performed: "${query}" in conversation ${conversationId}`)
+      } catch (error) {
+        logger.error('Error searching:', error)
+        socket.emit('search_error', { message: 'Search failed' })
+      }
     })
 
     // Mark message as read
@@ -352,7 +644,7 @@ export const initializeSocket = (io) => {
     })
 
     // User disconnects
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       const userId = socket.userId
 
       if (userId && userSockets.has(userId)) {
@@ -366,7 +658,24 @@ export const initializeSocket = (io) => {
         // If user has no more connections, mark as offline
         if (sockets.length === 0) {
           userSockets.delete(userId)
-          io.emit('user_status', { userId, status: 'offline' })
+
+          // Update database
+          await UserStatus.findOneAndUpdate(
+            { userId },
+            {
+              status: 'offline',
+              lastSeen: new Date(),
+              isTyping: false,
+            },
+            { upsert: true },
+          )
+
+          userStatusMap.set(userId, {
+            status: 'offline',
+            lastSeen: new Date(),
+          })
+
+          io.emit('user_status', { userId, status: 'offline', timestamp: new Date() })
           logger.info(`User ${userId} is now offline`)
         }
       }

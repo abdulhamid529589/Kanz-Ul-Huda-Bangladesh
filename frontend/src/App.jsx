@@ -12,12 +12,15 @@ import PersonalReportsPage from './pages/PersonalReportsPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import MemberProfilesPage from './pages/MemberProfilesPage'
 import ProfileSettingsPage from './pages/ProfileSettingsPage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminUserManagementPage from './pages/AdminUserManagementPage'
 import AdminMemberManagementPage from './pages/AdminMemberManagementPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import RegistrationRequestPage from './pages/RegistrationRequestPage'
 import MessagingPage from './pages/MessagingPage'
 import Layout from './components/Layout'
+import OfflineIndicator from './components/OfflineIndicator'
+import { useServiceWorker } from './hooks/useServiceWorker'
 
 // Main App Content
 const AppContent = () => {
@@ -26,6 +29,9 @@ const AppContent = () => {
   const [showRegister, setShowRegister] = useState(false)
   const [showResetPassword, setShowResetPassword] = useState(false)
   const [showRegistrationRequest, setShowRegistrationRequest] = useState(false)
+
+  // Track service worker state
+  const { hasUpdate, updateServiceWorker } = useServiceWorker()
 
   // Loading state
   if (loading) {
@@ -75,20 +81,26 @@ const AppContent = () => {
 
   // Authenticated - show app
   return (
-    <Layout currentPage={currentPage} setCurrentPage={setCurrentPage}>
-      {currentPage === 'dashboard' && <Dashboard />}
-      {currentPage === 'members' && <MembersPage />}
-      {currentPage === 'submissions' && <SubmissionsPage />}
-      {currentPage === 'reports' && <ReportsPage />}
-      {currentPage === 'personal-reports' && <PersonalReportsPage />}
-      {currentPage === 'leaderboard' && <LeaderboardPage />}
-      {currentPage === 'profiles' && <MemberProfilesPage />}
-      {currentPage === 'settings' && <ProfileSettingsPage />}
-      {currentPage === 'messaging' && <MessagingPage />}
-      {currentPage === 'admin-users' && user?.role === 'admin' && <AdminUserManagementPage />}
-      {currentPage === 'admin-members' && user?.role === 'admin' && <AdminMemberManagementPage />}
-      {currentPage === 'admin-settings' && user?.role === 'admin' && <AdminSettingsPage />}
-    </Layout>
+    <>
+      <OfflineIndicator hasUpdate={hasUpdate} onUpdate={updateServiceWorker} />
+      <Layout currentPage={currentPage} setCurrentPage={setCurrentPage}>
+        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'members' && <MembersPage />}
+        {currentPage === 'submissions' && <SubmissionsPage />}
+        {currentPage === 'reports' && <ReportsPage />}
+        {currentPage === 'personal-reports' && <PersonalReportsPage />}
+        {currentPage === 'leaderboard' && <LeaderboardPage />}
+        {currentPage === 'profiles' && <MemberProfilesPage />}
+        {currentPage === 'settings' && <ProfileSettingsPage />}
+        {currentPage === 'messaging' && <MessagingPage />}
+        {currentPage === 'admin-dashboard' && user?.role === 'admin' && (
+          <AdminDashboardPage setCurrentPage={setCurrentPage} />
+        )}
+        {currentPage === 'admin-users' && user?.role === 'admin' && <AdminUserManagementPage />}
+        {currentPage === 'admin-members' && user?.role === 'admin' && <AdminMemberManagementPage />}
+        {currentPage === 'admin-settings' && user?.role === 'admin' && <AdminSettingsPage />}
+      </Layout>
+    </>
   )
 }
 

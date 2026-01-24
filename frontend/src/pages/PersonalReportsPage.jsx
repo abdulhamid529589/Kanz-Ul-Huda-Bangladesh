@@ -219,15 +219,26 @@ const PersonalReportsPage = () => {
       </html>
     `
 
-    const opt = {
-      margin: 10,
-      filename: `${reportData.type}-Report-${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
-    }
+    try {
+      const element = document.createElement('div')
+      element.style.padding = '20px'
+      element.style.fontFamily = 'Arial, sans-serif'
+      element.innerHTML = htmlContent
 
-    html2pdf().set(opt).from(htmlContent).save()
+      const opt = {
+        margin: 10,
+        filename: `${reportData.type}-Report-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+      }
+
+      html2pdf().set(opt).from(element).save()
+      showSuccess('Report exported successfully!')
+    } catch (error) {
+      console.error('Error exporting PDF:', error)
+      showError('Failed to export PDF. Please try again.')
+    }
   }
 
   if (loading) {

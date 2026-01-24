@@ -91,6 +91,15 @@ if (process.env.NODE_ENV === 'development') {
 // Use Winston logger for production
 logger.info('Server starting...', { env: process.env.NODE_ENV })
 
+// Health Check - MUST BE BEFORE RATE LIMITING AND AUTH ROUTES
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Kanz ul Huda Durood System API',
+    timestamp: new Date().toISOString(),
+  })
+})
+
 // Rate Limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -160,15 +169,6 @@ app.use('/api/registration-requests', registrationRequestRoutes)
 
 // Initialize Socket.IO
 initializeSocket(io)
-
-// Health Check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'Kanz ul Huda Durood System API',
-    timestamp: new Date().toISOString(),
-  })
-})
 
 // 404 Handler
 app.use((req, res) => {
