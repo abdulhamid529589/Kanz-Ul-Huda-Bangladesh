@@ -38,8 +38,8 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <ThemeProvider>
+    <ThemeProvider>
+      <ErrorBoundary>
         <App />
         <Toaster
           position="top-right"
@@ -65,7 +65,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             },
           }}
         />
-      </ThemeProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </ThemeProvider>
   </React.StrictMode>,
 )

@@ -88,13 +88,52 @@ const messageSchema = new mongoose.Schema(
         ref: 'User',
       },
     },
+    // Voice message support
+    voiceUrl: {
+      type: String,
+      default: null,
+    },
+    voiceDuration: {
+      type: Number,
+      default: null,
+    },
+    // Mentions system
+    mentions: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        username: String,
+        notified: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+    // Message scheduling
+    isScheduled: {
+      type: Boolean,
+      default: false,
+    },
+    scheduledFor: {
+      type: Date,
+      default: null,
+    },
+    isScheduledSent: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 )
 
-// Index for fast querying conversations
+// Indexes for fast querying
 messageSchema.index({ conversationId: 1, createdAt: -1 })
 messageSchema.index({ senderId: 1 })
+messageSchema.index({ isScheduled: 1, scheduledFor: 1 })
+messageSchema.index({ 'mentions.userId': 1 })
+messageSchema.index({ content: 'text' })
 
 const Message = mongoose.model('Message', messageSchema)
 export default Message

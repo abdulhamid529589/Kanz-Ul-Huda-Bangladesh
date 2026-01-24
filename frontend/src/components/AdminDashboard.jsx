@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Users,
   UserCheck,
@@ -21,8 +22,9 @@ import toast from 'react-hot-toast'
  * Admin Dashboard Component
  * Clean, modern admin interface with statistics and navigation
  */
-const AdminDashboard = ({ setCurrentPage }) => {
+const AdminDashboard = () => {
   const { token, logout } = useAuth()
+  const navigate = useNavigate()
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -216,10 +218,10 @@ const AdminDashboard = ({ setCurrentPage }) => {
   }
 
   const navigationItems = [
-    { label: 'Users', page: 'admin-users', icon: Users },
-    { label: 'Members', page: 'admin-members', icon: Target },
-    { label: 'Reports', page: 'reports', icon: BarChart3 },
-    { label: 'Settings', page: 'admin-settings', icon: Settings },
+    { label: 'Users', path: '/admin-users', icon: Users },
+    { label: 'Members', path: '/admin-members', icon: Target },
+    { label: 'Reports', path: '/reports', icon: BarChart3 },
+    { label: 'Settings', path: '/admin-settings', icon: Settings },
   ]
 
   return (
@@ -248,7 +250,7 @@ const AdminDashboard = ({ setCurrentPage }) => {
             return (
               <button
                 key={item.label}
-                onClick={() => setCurrentPage(item.page)}
+                onClick={() => navigate(item.path)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-left"
               >
                 <Icon size={20} />

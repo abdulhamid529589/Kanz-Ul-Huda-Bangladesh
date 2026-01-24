@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   LogOut,
   Menu,
@@ -10,6 +11,8 @@ import {
   Trophy,
   UserCircle,
   Settings,
+  Search,
+  TrendingUp,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MdDashboard } from 'react-icons/md'
@@ -17,8 +20,10 @@ import { useAuth } from '../context/AuthContext'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 import ThemeToggle from './ThemeToggle'
 
-const Layout = ({ children, currentPage, setCurrentPage }) => {
+const Layout = ({ children }) => {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isDesktop = useIsDesktop()
 
@@ -30,33 +35,41 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
   }, [isDesktop])
 
   const commonNavigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-    { id: 'members', name: 'Members', icon: Users },
-    { id: 'submissions', name: 'Submissions', icon: Send },
-    { id: 'reports', name: 'Reports', icon: FileText },
-    { id: 'personal-reports', name: 'My Reports', icon: FileText },
-    { id: 'leaderboard', name: 'Leaderboard', icon: Trophy },
-    { id: 'profiles', name: 'Member Profiles', icon: UserCircle },
-    { id: 'messaging', name: 'Messages', icon: Send },
-    { id: 'settings', name: 'Settings', icon: Settings },
+    { id: 'dashboard', path: '/dashboard', name: 'Dashboard', icon: BarChart3 },
+    { id: 'members', path: '/members', name: 'Members', icon: Users },
+    { id: 'submissions', path: '/submissions', name: 'Submissions', icon: Send },
+    { id: 'reports', path: '/reports', name: 'Reports', icon: FileText },
+    { id: 'personal-reports', path: '/personal-reports', name: 'My Reports', icon: FileText },
+    { id: 'leaderboard', path: '/leaderboard', name: 'Leaderboard', icon: Trophy },
+    { id: 'profiles', path: '/profiles', name: 'Member Profiles', icon: UserCircle },
+    { id: 'advanced-search', path: '/advanced-search', name: 'Advanced Search', icon: Search },
+    { id: 'messaging', path: '/messaging', name: 'Messages', icon: Send },
+    { id: 'settings', path: '/settings', name: 'Settings', icon: Settings },
   ]
 
   const adminNavigation = [
-    { id: 'admin-dashboard', name: 'Admin Dashboard', icon: BarChart3 },
-    { id: 'admin-users', name: 'Admin: Users', icon: Users },
-    { id: 'admin-members', name: 'Admin: Members', icon: Users },
-    { id: 'admin-settings', name: 'Admin: Settings', icon: Settings },
+    { id: 'admin-dashboard', path: '/admin-dashboard', name: 'Admin Dashboard', icon: BarChart3 },
+    { id: 'admin-analytics', path: '/admin-analytics', name: 'Admin: Analytics', icon: TrendingUp },
+    { id: 'admin-users', path: '/admin-users', name: 'Admin: Users', icon: Users },
+    { id: 'admin-members', path: '/admin-members', name: 'Admin: Members', icon: Users },
+    { id: 'admin-settings', path: '/admin-settings', name: 'Admin: Settings', icon: Settings },
   ]
 
   const navigation =
     user?.role === 'admin'
-      ? [...commonNavigation, { id: 'divider', name: '', icon: null }, ...adminNavigation]
+      ? [
+          ...commonNavigation,
+          { id: 'divider', path: null, name: '', icon: null },
+          ...adminNavigation,
+        ]
       : commonNavigation
 
-  const handleNavigation = (pageId) => {
-    setCurrentPage(pageId)
+  const handleNavigation = (path) => {
+    navigate(path)
     setSidebarOpen(false)
   }
+
+  const isActive = (path) => location.pathname === path
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -144,9 +157,9 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
                   return (
                     <motion.button
                       key={item.id}
-                      onClick={() => handleNavigation(item.id)}
+                      onClick={() => handleNavigation(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                        currentPage === item.id
+                        isActive(item.path)
                           ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium shadow-sm'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
@@ -157,7 +170,7 @@ const Layout = ({ children, currentPage, setCurrentPage }) => {
                       whileTap={{ scale: 0.98 }}
                     >
                       <motion.div
-                        animate={currentPage === item.id ? { scale: 1.2 } : { scale: 1 }}
+                        animate={isActive(item.path) ? { scale: 1.2 } : { scale: 1 }}
                         transition={{ duration: 0.2 }}
                       >
                         <item.icon className="w-5 h-5" />

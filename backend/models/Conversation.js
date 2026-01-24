@@ -38,6 +38,19 @@ const conversationSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    // Archive support
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+    archivedAt: {
+      type: Date,
+      default: null,
+    },
+    archivedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: true },
 )
@@ -45,6 +58,7 @@ const conversationSchema = new mongoose.Schema(
 conversationSchema.index({ participants: 1 })
 conversationSchema.index({ groupAdmin: 1 })
 conversationSchema.index({ lastMessageAt: -1 })
+conversationSchema.index({ isArchived: 1 })
 
 const Conversation = mongoose.model('Conversation', conversationSchema)
 export default Conversation
