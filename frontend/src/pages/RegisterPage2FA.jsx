@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { apiCall } from '../utils/api'
 import { showSuccess, showError } from '../utils/toast'
 
 const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -293,7 +295,7 @@ const RegisterPage2FA = ({ onBackToLogin, onRegistrationSuccess }) => {
           {/* Back to Login */}
           <button
             type="button"
-            onClick={onBackToLogin}
+            onClick={() => onBackToLogin?.() || navigate('/login')}
             className="w-full flex items-center justify-center gap-2 text-primary-300 hover:text-primary-200 font-medium mt-3 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

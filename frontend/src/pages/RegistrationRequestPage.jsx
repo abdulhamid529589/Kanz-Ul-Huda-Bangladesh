@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Mail, User, CheckCircle, AlertCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Mail, User, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import { apiCall } from '../utils/api'
 import { showSuccess, showError } from '../utils/toast'
 
 const RegistrationRequestForm = ({ onSuccess }) => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -163,6 +165,16 @@ const RegistrationRequestForm = ({ onSuccess }) => {
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
           >
             {loading ? 'Submitting...' : 'Submit Registration Request'}
+          </button>
+
+          {/* Back to Login Button */}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 font-medium mt-2 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Login
           </button>
         </form>
 

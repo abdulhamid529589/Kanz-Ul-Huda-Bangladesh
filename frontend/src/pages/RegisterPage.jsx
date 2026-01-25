@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
 const RegisterPage = ({ onBackToLogin }) => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -231,7 +233,7 @@ const RegisterPage = ({ onBackToLogin }) => {
 
           {/* Back to Login */}
           <button
-            onClick={onBackToLogin}
+            onClick={() => onBackToLogin?.() || navigate('/login')}
             disabled={loading}
             className="w-full flex items-center justify-center gap-2 text-primary-600 hover:text-primary-700 transition-colors py-2"
           >

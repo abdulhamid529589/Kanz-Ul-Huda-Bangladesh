@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ForgotPasswordModal from '../components/ForgotPasswordModal'
 
 const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -38,6 +40,14 @@ const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
     if (e.key === 'Enter') {
       handleSubmit(e)
     }
+  }
+
+  const handleRegisterClick = () => {
+    onRegisterClick?.() || navigate('/register')
+  }
+
+  const handleRegistrationRequestClick = () => {
+    onRegistrationRequestClick?.() || navigate('/registration-request')
   }
 
   return (
@@ -214,7 +224,7 @@ const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
             <p className="text-sm text-gray-200">
               Not a member yet?{' '}
               <motion.button
-                onClick={onRegistrationRequestClick}
+                onClick={handleRegistrationRequestClick}
                 whileHover={{ color: '#86efac' }}
                 className="text-primary-300 hover:text-primary-200 font-semibold transition-colors disabled:opacity-50"
                 disabled={loading}
@@ -226,7 +236,7 @@ const LoginPage = ({ onRegisterClick, onRegistrationRequestClick }) => {
             <p className="text-sm text-gray-200">
               Already approved?{' '}
               <motion.button
-                onClick={onRegisterClick}
+                onClick={handleRegisterClick}
                 whileHover={{ color: '#fbbf24' }}
                 className="text-secondary-300 hover:text-secondary-200 font-semibold transition-colors disabled:opacity-50"
                 disabled={loading}
