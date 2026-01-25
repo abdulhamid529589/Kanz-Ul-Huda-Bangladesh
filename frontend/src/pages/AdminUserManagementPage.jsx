@@ -330,7 +330,7 @@ const AdminUserManagementPage = () => {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3">
           <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
             <input
@@ -381,7 +381,10 @@ const AdminUserManagementPage = () => {
           </div>
         ) : (
           users.map((user) => (
-            <div key={user._id} className="grid grid-cols-1 lg:grid-cols-2 gap-4 relative">
+            <div
+              key={user._id}
+              className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-5 lg:grid-cols-2 lg:gap-6 relative"
+            >
               {/* Checkbox */}
               <div className="absolute -left-6 top-4 flex items-center">
                 <input
@@ -396,7 +399,7 @@ const AdminUserManagementPage = () => {
                     }
                     setSelectedUsers(newSet)
                   }}
-                  className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
                 />
               </div>
 

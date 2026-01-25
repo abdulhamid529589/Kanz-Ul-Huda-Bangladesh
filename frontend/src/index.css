@@ -104,85 +104,282 @@
     padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
-  /* Mobile Sidebar Optimization - Modern Design - Centered */
-  @media (max-width: 640px) {
-    /* Centered mobile sidebar */
-    aside {
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-      scrollbar-width: thin;
-      scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+  /* ========================================
+     MOBILE FIRST - DEFAULT (< 640px)
+     ======================================== */
+
+  /* Mobile Base Typography */
+  body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Mobile Table Handling */
+  table {
+    font-size: 12px;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: block;
+    width: 100%;
+  }
+
+  tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+  }
+
+  .dark tr {
+    background: #1f2937;
+  }
+
+  td {
+    display: block;
+    padding: 0.75rem !important;
+    text-align: right;
+    white-space: normal !important;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  td:first-child {
+    text-align: left;
+    font-weight: 600;
+    background: #f9fafb;
+    border-radius: 8px 8px 0 0;
+  }
+
+  /* Mobile Card Handling */
+  .card {
+    padding: 1rem !important;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-content {
+    border-radius: 20px;
+  }
+
+  /* Mobile Form Inputs */
+  input[type='text'],
+  input[type='password'],
+  input[type='email'],
+  input[type='tel'],
+  input[type='number'],
+  input[type='search'],
+  input[type='url'],
+  input[type='date'],
+  input[type='time'],
+  select,
+  textarea {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  /* Larger touch targets on mobile */
+  button,
+  a:not(.link),
+  input,
+  select,
+  textarea,
+  [role='button'] {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Larger checkbox/radio on mobile */
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    cursor: pointer;
+  }
+
+  /* Better label spacing on mobile */
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  /* Mobile Sidebar Optimization */
+  aside {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  aside::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  aside::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  aside::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.6);
+    border-radius: 4px;
+  }
+
+  aside::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.8);
+  }
+
+  aside nav {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    padding-right: 6px;
+  }
+
+  aside nav::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  aside nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  aside nav::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.6);
+    border-radius: 4px;
+  }
+
+  aside nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.8);
+  }
+
+  aside nav button {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+  }
+
+  aside nav button:active {
+    transform: scale(0.96);
+  }
+
+  .dark aside {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .dark aside nav button {
+    backdrop-filter: blur(4px);
+  }
+
+  /* Landscape mode optimization */
+  @media (max-height: 500px) and (orientation: landscape) {
+    body {
+      font-size: 13px;
+      line-height: 1.4;
     }
 
-    aside::-webkit-scrollbar {
-      width: 8px;
+    h1 {
+      font-size: 1.5rem;
     }
 
-    aside::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    aside::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.6);
-      border-radius: 4px;
-    }
-
-    aside::-webkit-scrollbar-thumb:hover {
-      background: rgba(107, 114, 128, 0.8);
-    }
-
-    aside nav {
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+    .sidebar {
+      max-height: 90vh;
       overflow-y: auto;
-      overflow-x: hidden;
-      max-height: 100%;
-      padding-right: 6px;
+      -webkit-overflow-scrolling: touch;
     }
 
-    aside nav::-webkit-scrollbar {
-      width: 8px;
+    .card {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
-    aside nav::-webkit-scrollbar-track {
-      background: transparent;
+    .space-y-4 {
+      @apply space-y-2;
     }
 
-    aside nav::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.6);
-      border-radius: 4px;
+    .space-y-6 {
+      @apply space-y-3;
     }
 
-    aside nav::-webkit-scrollbar-thumb:hover {
-      background: rgba(107, 114, 128, 0.8);
+    .p-6 {
+      @apply p-3;
     }
 
-    /* Modern nav item transitions */
-    aside nav button {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(4px);
-    }
-
-    aside nav button:active {
-      transform: scale(0.96);
-    }
-
-    /* Dark mode optimizations */
-    .dark aside {
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      border-color: rgba(255, 255, 255, 0.05);
-    }
-
-    .dark aside nav button {
-      backdrop-filter: blur(4px);
+    .py-6 {
+      @apply py-3;
     }
   }
 
-  /* Tablet and Desktop Sidebar */
-  @media (min-width: 641px) and (max-width: 1023px) {
+  /* ========================================
+     TABLET - sm (640px to 1023px)
+     ======================================== */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    body {
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    table {
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 0.75rem;
+    }
+
+    /* Tablet sidebar */
     aside {
       box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
       scrollbar-width: thin;
@@ -235,12 +432,10 @@
       background: rgba(107, 114, 128, 0.8);
     }
 
-    /* Ensure first item is always visible */
     aside nav > :first-child {
       margin-top: 0;
     }
 
-    /* Modern nav item transitions */
     aside nav button {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       backdrop-filter: blur(4px);
@@ -250,7 +445,6 @@
       transform: scale(0.96);
     }
 
-    /* Dark mode optimizations */
     .dark aside {
       box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
     }
@@ -259,176 +453,8 @@
       backdrop-filter: blur(4px);
     }
 
-    /* Modern backdrop overlay effect */
     [role='presentation'] {
       backdrop-filter: blur(4px);
-    }
-  }
-
-  /* Mobile First (< 640px) */
-  @media (max-width: 639px) {
-    body {
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* Tighter spacing on mobile */
-    h1 {
-      font-size: 1.5rem;
-      line-height: 1.3;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      line-height: 1.3;
-    }
-
-    h3 {
-      font-size: 1.1rem;
-      line-height: 1.4;
-    }
-
-    /* Ensure tables are scrollable on mobile */
-    table {
-      font-size: 12px;
-      display: block;
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    thead {
-      display: none;
-    }
-
-    tbody {
-      display: block;
-      width: 100%;
-    }
-
-    tr {
-      display: block;
-      margin-bottom: 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      background: white;
-    }
-
-    td {
-      display: block;
-      padding: 0.75rem !important;
-      text-align: right;
-      white-space: normal !important;
-      border-bottom: 1px solid #f3f4f6;
-    }
-
-    td:first-child {
-      text-align: left;
-      font-weight: 600;
-      background: #f9fafb;
-      border-radius: 8px 8px 0 0;
-    }
-
-    /* Better spacing for cards on mobile */
-    .card {
-      padding: 1rem !important;
-      margin-bottom: 0.75rem;
-    }
-
-    /* Reduce modal padding on mobile */
-    .modal-content {
-      border-radius: 20px;
-    }
-  }
-
-  /* Touch-friendly buttons and inputs on mobile */
-  @media (max-width: 768px) {
-    button,
-    a:not(.link),
-    input,
-    select,
-    textarea,
-    [role='button'] {
-      /* Minimum touch target size (48x48px recommended for mobile) */
-      min-height: 48px;
-      min-width: 48px;
-      /* Remove 300ms click delay on mobile */
-      touch-action: manipulation;
-      /* Better tap feedback */
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    /* Better input font size on mobile to prevent zoom */
-    input[type='text'],
-    input[type='password'],
-    input[type='email'],
-    input[type='tel'],
-    input[type='number'],
-    input[type='search'],
-    input[type='url'],
-    input[type='date'],
-    input[type='time'],
-    select,
-    textarea {
-      font-size: 16px;
-      /* Extra padding for mobile comfort */
-      padding: 12px 16px;
-    }
-
-    /* Larger checkbox/radio on mobile */
-    input[type='checkbox'],
-    input[type='radio'] {
-      width: 24px;
-      height: 24px;
-      margin-right: 12px;
-      cursor: pointer;
-    }
-
-    /* Better label spacing */
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    /* Improve form spacing */
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    /* Prevent text selection on repeated taps */
-    button,
-    [role='button'] {
-      -webkit-user-select: none;
-      user-select: none;
-    }
-  }
-
-  /* Tablet optimizations (640px to 1023px) */
-  @media (min-width: 640px) and (max-width: 1023px) {
-    /* Better use of tablet screen real estate */
-    body {
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-    }
-
-    table {
-      font-size: 13px;
-    }
-
-    th,
-    td {
-      padding: 0.75rem;
     }
 
     /* Optimize for tablet portrait */
@@ -436,6 +462,237 @@
       .sidebar {
         width: 240px;
       }
+    }
+  }
+
+  /* ========================================
+     DESKTOP - md and above (1024px+)
+     ======================================== */
+  @media (min-width: 1024px) {
+    body {
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 2rem;
+      line-height: 1.3;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      line-height: 1.4;
+    }
+
+    h4 {
+      font-size: 1.25rem;
+      line-height: 1.5;
+    }
+
+    h5 {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    h6 {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    /* Better form sizing on desktop */
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+      padding: 10px 14px;
+    }
+
+    /* Desktop button sizing */
+    button,
+    a:not(.link),
+    [role='button'] {
+      min-height: 40px;
+      min-width: 40px;
+      font-size: 14px;
+    }
+
+    /* Table improvements for desktop */
+    table {
+      font-size: 14px;
+      display: table;
+      width: 100%;
+      overflow: visible;
+    }
+
+    thead {
+      display: table-header-group;
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+
+    tbody {
+      display: table-row-group;
+    }
+
+    tr {
+      display: table-row;
+      margin: 0;
+      border: none;
+      border-bottom: 1px solid #e5e7eb;
+      background: transparent;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+    }
+
+    td,
+    th {
+      display: table-cell;
+      padding: 12px 16px;
+      text-align: left;
+      border: none;
+      background: transparent;
+    }
+
+    /* Card improvements */
+    .card {
+      padding: 1.5rem !important;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modal on desktop */
+    .modal-content {
+      border-radius: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar styling on desktop */
+    .sidebar {
+      width: 280px;
+      display: block !important;
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+    }
+
+    /* Better spacing in layout */
+    .main-content {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Horizontal scrollable lists */
+    .scroll-x {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: auto;
+    }
+  }
+
+  /* ========================================
+     LAPTOP - lg (1280px+)
+     ======================================== */
+  @media (min-width: 1280px) {
+    /* Even better spacing for large screens */
+    body {
+      font-size: 16px;
+    }
+
+    /* Improve sidebar */
+    .sidebar {
+      width: 300px;
+    }
+
+    /* Better main content */
+    .main-content {
+      padding: 2.5rem;
+      max-width: 1500px;
+    }
+
+    /* Wider modals on laptop */
+    .modal-content {
+      max-width: 700px;
+    }
+
+    /* Better form layouts */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    .form-grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ========================================
+     WIDE SCREEN - xl (1920px+)
+     ======================================== */
+  @media (min-width: 1920px) {
+    /* Larger font sizes for large displays */
+    h1 {
+      font-size: 3rem;
+    }
+
+    h2 {
+      font-size: 2.25rem;
+    }
+
+    .main-content {
+      padding: 3rem;
+      max-width: 1800px;
+    }
+
+    /* Wider modals */
+    .modal-content {
+      max-width: 900px;
+    }
+
+    /* Better sidebar for widescreen */
+    .sidebar {
+      width: 320px;
+    }
+  }
+
+  /* ========================================
+     4K SCREEN - 2xl (2560px+)
+     ======================================== */
+  @media (min-width: 2560px) {
+    body {
+      font-size: 18px;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+    }
+
+    h2 {
+      font-size: 2.75rem;
+    }
+
+    .main-content {
+      padding: 4rem;
+      max-width: 2200px;
+    }
+
+    /* Comfortable spacing on 4K */
+    .card {
+      padding: 2rem !important;
+      margin-bottom: 2rem;
     }
   }
 
@@ -457,46 +714,6 @@
       padding-bottom: max(1rem, env(safe-area-inset-bottom));
       padding-left: max(1rem, env(safe-area-inset-left));
       padding-right: max(1rem, env(safe-area-inset-right));
-    }
-  }
-
-  /* Landscape mode optimization */
-  @media (max-height: 500px) and (orientation: landscape) {
-    body {
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-    }
-
-    .sidebar {
-      max-height: 90vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .card {
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Compact mode for landscape */
-    .space-y-4 {
-      @apply space-y-2;
-    }
-
-    .space-y-6 {
-      @apply space-y-3;
-    }
-
-    .p-6 {
-      @apply p-3;
-    }
-
-    .py-6 {
-      @apply py-3;
     }
   }
 
@@ -532,9 +749,11 @@
 @layer components {
   /* Button Styles - Modern with enhanced transitions and effects */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 disabled:transition-none relative overflow-hidden;
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-3 sm:px-5 sm:py-2.5 md:px-6 md:py-3 lg:px-7 lg:py-3.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 disabled:transition-none relative overflow-hidden;
     /* Touch-friendly on mobile */
-    min-height: 44px;
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
   }
 
   .btn-primary::before {
@@ -561,8 +780,10 @@
   }
 
   .btn-secondary {
-    @apply bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 relative overflow-hidden;
-    min-height: 44px;
+    @apply bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 px-4 py-3 sm:px-5 sm:py-2.5 md:px-6 md:py-3 lg:px-7 lg:py-3.5 rounded-lg font-medium shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 relative overflow-hidden;
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
   }
 
   .btn-secondary::before {
@@ -585,8 +806,10 @@
   }
 
   .btn-danger {
-    @apply bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 relative overflow-hidden;
-    min-height: 44px;
+    @apply bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-3 sm:px-5 sm:py-2.5 md:px-6 md:py-3 lg:px-7 lg:py-3.5 rounded-lg font-medium shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 relative overflow-hidden;
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
   }
 
   .btn-danger::before {
@@ -609,8 +832,10 @@
   }
 
   .btn-outline {
-    @apply border-2 border-primary-600 text-primary-600 px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-medium active:scale-95 transition-all duration-200 relative overflow-hidden;
-    min-height: 44px;
+    @apply border-2 border-primary-600 text-primary-600 px-4 py-3 sm:px-5 sm:py-2.5 md:px-6 md:py-3 lg:px-7 lg:py-3.5 rounded-lg font-medium active:scale-95 transition-all duration-200 relative overflow-hidden;
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
     background: linear-gradient(to right, transparent, transparent);
   }
 
@@ -624,11 +849,12 @@
 
   /* Input Styles - Modern with smooth transitions */
   .input-field {
-    @apply w-full px-4 py-2.5 sm:py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-300 outline-none transition-all placeholder:text-gray-400 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white;
+    @apply w-full px-4 py-3 sm:py-2.5 md:py-3 lg:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-300 outline-none transition-all placeholder:text-gray-400 bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white;
     /* Prevent zoom on iOS when focusing */
     font-size: 16px;
-    min-height: 44px;
+    min-height: 48px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    touch-action: manipulation;
   }
 
   .input-field:focus {

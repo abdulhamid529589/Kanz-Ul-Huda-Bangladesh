@@ -144,8 +144,10 @@ const ProfileSettingsPage = () => {
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+          Settings
+        </h1>
+        <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
           Manage your profile and security settings
         </p>
       </motion.div>
@@ -163,7 +165,7 @@ const ProfileSettingsPage = () => {
         </h2>
 
         <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

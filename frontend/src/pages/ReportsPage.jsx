@@ -211,16 +211,16 @@ const ReportsPage = () => {
   }
 
   return (
-    <div className="space-y-6 px-3 sm:px-4 md:px-0">
+    <div className="space-y-6 px-4 sm:px-5 md:px-6 lg:px-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Reports & Analytics
         </h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={handleExportCSV}
-            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors text-xs sm:text-sm font-medium"
+            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-3 sm:py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-[40px]"
             title="Export as CSV"
           >
             <Download className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -228,7 +228,7 @@ const ReportsPage = () => {
           </button>
           <button
             onClick={handleExportJSON}
-            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors text-xs sm:text-sm font-medium"
+            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-3 sm:py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-[40px]"
             title="Export as JSON"
           >
             <Download className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -236,7 +236,7 @@ const ReportsPage = () => {
           </button>
           <button
             onClick={handleExportPDF}
-            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-800 transition-colors text-xs sm:text-sm font-medium"
+            className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-3 sm:py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-800 transition-colors text-xs sm:text-sm font-medium min-h-[44px] sm:min-h-[40px]"
             title="Export as PDF"
           >
             <Download className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -285,7 +285,7 @@ const ReportsPage = () => {
       {reportType === 'overview' && stats && (
         <div className="space-y-6">
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4 lg:gap-5">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -346,7 +346,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Time Period Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-5">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 This Week

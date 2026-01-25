@@ -75,12 +75,12 @@ const Layout = ({ children }) => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col w-screen overflow-x-hidden">
       {/* Header - Mobile Optimized */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-0 z-50 safe-area w-full">
-        <div className="px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 flex items-center justify-between gap-1 min-h-[48px] sm:min-h-[52px] md:min-h-[56px] lg:min-h-[60px]">
+        <div className="px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 lg:px-6 lg:py-3.5 flex items-center justify-between gap-2 min-h-[48px] sm:min-h-[52px] md:min-h-[56px] lg:min-h-[60px]">
           {/* Left Section - Menu & Logo */}
-          <div className="flex items-center gap-0.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
             <motion.button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0 active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center touch-target"
               aria-label="Toggle menu"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -94,27 +94,27 @@ const Layout = ({ children }) => {
               </motion.div>
             </motion.button>
             <motion.h1
-              className="text-xs sm:text-lg md:text-2xl lg:text-3xl font-bold text-primary-600 dark:text-primary-400 flex items-center gap-0.5 sm:gap-2 md:gap-3 truncate"
+              className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary-600 dark:text-primary-400 flex items-center gap-2 sm:gap-3 md:gap-4 truncate"
               whileHover={{ scale: 1.02 }}
             >
               <motion.span
-                className="text-base sm:text-2xl md:text-3xl lg:text-4xl flex-shrink-0"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl flex-shrink-0"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 🕌
               </motion.span>
-              <span className="inline text-xs sm:text-sm md:text-lg lg:text-xl font-semibold truncate">
-                Kanz ul Huda
+              <span className="inline text-sm sm:text-lg md:text-2xl lg:text-3xl font-semibold truncate">
+                Kanz ul Huda Bangladesh
               </span>
             </motion.h1>
           </div>
 
           {/* Right Section - Actions */}
-          <div className="flex items-center gap-0.5 sm:gap-2 md:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
             {/* User Info - Hidden on mobile */}
-            <div className="text-right hidden md:block mr-0 lg:mr-2">
-              <p className="font-medium text-gray-800 dark:text-gray-200 text-xs truncate max-w-[80px] md:max-w-[100px] lg:max-w-none">
+            <div className="text-right hidden md:block mr-2 lg:mr-4">
+              <p className="font-medium text-gray-800 dark:text-gray-200 text-xs sm:text-sm md:text-base truncate max-w-[100px] lg:max-w-none">
                 {user?.fullName || 'User'}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">{user?.role}</p>
@@ -126,14 +126,14 @@ const Layout = ({ children }) => {
             {/* Logout Button */}
             <motion.button
               onClick={logout}
-              className="flex items-center justify-center gap-1 px-1.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 active:scale-95 transition-all text-xs sm:text-sm md:text-base lg:text-lg min-h-[44px] md:min-h-[48px] lg:min-h-[52px] min-w-[44px]"
+              className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 lg:px-6 lg:py-3.5 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 active:scale-95 transition-all text-xs sm:text-sm md:text-base lg:text-lg min-h-[44px] min-w-[44px] touch-target"
               aria-label="Logout"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               title="Logout"
             >
               <LogOut className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0" />
-              <span className="hidden md:inline">Logout</span>
+              <span className="hidden sm:inline">Logout</span>
             </motion.button>
           </div>
         </div>
@@ -150,20 +150,20 @@ const Layout = ({ children }) => {
               transition={{ type: 'spring', stiffness: 280, damping: 35 }}
               className={`${
                 isDesktop
-                  ? 'fixed lg:sticky top-[48px] sm:top-[52px] md:top-[56px] lg:top-0 left-0 w-screen sm:w-72 md:w-80 lg:w-80 h-[calc(100vh-48px)] sm:h-[calc(100vh-52px)] md:h-[calc(100vh-56px)] lg:h-auto'
-                  : 'fixed inset-0 w-72 max-w-[calc(100vw-24px)] h-fit max-h-[calc(100vh-80px)] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl'
+                  ? 'fixed lg:sticky top-[48px] sm:top-[52px] md:top-[56px] lg:top-0 left-0 w-screen sm:w-72 md:w-80 lg:w-96 h-[calc(100vh-48px)] sm:h-[calc(100vh-52px)] md:h-[calc(100vh-56px)] lg:h-auto'
+                  : 'fixed inset-0 w-full max-w-sm h-fit max-h-[calc(100vh-60px)] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl mx-3'
               } bg-gradient-to-b from-white via-white to-gray-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900 border-r dark:border-gray-700 z-40 lg:z-auto flex flex-col overflow-y-auto sm:overflow-hidden -webkit-overflow-scrolling-touch shadow-2xl lg:shadow-none`}
             >
               {/* Scrollable Navigation */}
-              <nav className="space-y-0.5 px-2 sm:px-4 md:px-5 py-2 sm:py-5 pt-2 sm:pt-4 flex-1 overflow-y-auto -webkit-overflow-scrolling-touch scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scroll-smooth">
+              <nav className="space-y-1 px-3 sm:px-5 md:px-6 py-3 sm:py-6 md:py-8 pt-3 sm:pt-6 md:pt-8 flex-1 overflow-y-auto -webkit-overflow-scrolling-touch scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scroll-smooth">
                 {navigation.map((item, index) => {
                   if (item.id === 'divider') {
                     return (
                       <div
                         key={index}
-                        className="my-1.5 sm:my-3 pt-1 border-t dark:border-gray-700"
+                        className="my-3 sm:my-4 md:my-6 pt-2 sm:pt-3 md:pt-4 border-t dark:border-gray-700"
                       >
-                        <p className="px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <p className="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           📊 Admin Panel
                         </p>
                       </div>
@@ -174,7 +174,7 @@ const Layout = ({ children }) => {
                     <motion.button
                       key={item.id}
                       onClick={() => handleNavigation(item.path)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all min-h-[42px] active:scale-95 text-xs sm:text-sm md:text-base lg:text-lg font-medium ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all min-h-[48px] touch-target active:scale-95 text-sm sm:text-base md:text-lg font-medium ${
                         isActive(item.path)
                           ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 dark:shadow-primary-500/20'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
@@ -195,9 +195,9 @@ const Layout = ({ children }) => {
                           isActive(item.path) ? { rotate: 20, scale: 1.3 } : { rotate: 0, scale: 1 }
                         }
                         transition={{ duration: 0.3, type: 'spring', stiffness: 400 }}
-                        className="flex-shrink-0 w-5 h-5"
+                        className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6"
                       >
-                        <item.icon className="w-5 h-5" />
+                        <item.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                       </motion.div>
                       <span className="flex-1 text-left truncate">{item.name}</span>
                       {isActive(item.path) && (
@@ -213,15 +213,15 @@ const Layout = ({ children }) => {
               </nav>
 
               {/* Sidebar Footer - Sticky at Bottom */}
-              <div className="px-3 py-2 border-t dark:border-gray-700 flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent dark:from-gray-800 dark:via-gray-800 dark:to-transparent mt-auto safe-area-bottom">
-                <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 text-center">
+              <div className="px-4 py-3 sm:py-4 md:py-5 border-t dark:border-gray-700 flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent dark:from-gray-800 dark:via-gray-800 dark:to-transparent mt-auto safe-area-bottom">
+                <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 text-center">
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                   >
                     <p className="font-semibold">🕌 Kanz ul Huda</p>
-                    <p className="mt-1.5 text-gray-500 dark:text-gray-500">v1.0.0</p>
+                    <p className="mt-2 text-gray-500 dark:text-gray-500">v1.0.0</p>
                   </motion.div>
                 </div>
               </div>
@@ -246,13 +246,13 @@ const Layout = ({ children }) => {
 
         {/* Main Content - Mobile Optimized */}
         <motion.main
-          className="flex-1 overflow-y-auto -webkit-overflow-scrolling-touch p-2 sm:p-4 md:p-5 lg:p-6 xl:p-8 w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+          className="flex-1 overflow-y-auto -webkit-overflow-scrolling-touch p-3 sm:p-5 md:p-6 lg:p-8 xl:p-10 w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           style={{ height: 'calc(100vh - 48px)', minWidth: 0 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="max-w-full sm:max-w-4xl md:max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl h-full mx-auto">
+          <div className="max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-8xl h-full mx-auto">
             {children}
           </div>
         </motion.main>

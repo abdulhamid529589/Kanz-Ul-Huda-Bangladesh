@@ -381,7 +381,7 @@ const AdminMemberManagementPage = () => {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 space-y-3 sm:space-y-0 px-3 sm:px-4">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4">
+        <div className="flex flex-col gap-2 sm:gap-3 md:gap-4 md:flex-row">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             <input
@@ -413,7 +413,125 @@ const AdminMemberManagementPage = () => {
 
       {/* Members Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden px-3 sm:px-0">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden">
+          {members.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+              No members found
+            </div>
+          ) : (
+            <div className="divide-y dark:divide-gray-700">
+              {members.map((member) => (
+                <div
+                  key={member._id}
+                  className="p-3 sm:p-4 space-y-2 sm:space-y-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">
+                        {member.fullName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {member.phoneNumber}
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={selectedMembers.has(member._id)}
+                      onChange={(e) => {
+                        const newSet = new Set(selectedMembers)
+                        if (e.target.checked) {
+                          newSet.add(member._id)
+                        } else {
+                          newSet.delete(member._id)
+                        }
+                        setSelectedMembers(newSet)
+                      }}
+                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer mt-1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Submissions:</span>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {member.submissionCount || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Total Durood:</span>
+                      <p className="font-semibold text-green-600 dark:text-green-400">
+                        {member.totalDurood || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${
+                          member.status === 'active'
+                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                            : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                        }`}
+                      >
+                        {member.status}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        {new Date(member.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 pt-2 border-t dark:border-gray-700">
+                    <button
+                      onClick={() => {
+                        setEditingMember(member)
+                        setFormData({
+                          fullName: member.fullName,
+                          phoneNumber: member.phoneNumber,
+                          email: member.email || '',
+                          city: member.city || '',
+                          country: member.country || '',
+                          facebookUrl: member.facebookUrl || '',
+                          status: member.status,
+                          category: member.category || 'Regular',
+                          notes: member.notes || '',
+                        })
+                        setFormErrors({})
+                        setShowModal(true)
+                      }}
+                      title="Edit"
+                      className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition-colors flex-1"
+                    >
+                      <Edit className="w-4 h-4 mx-auto" />
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(member._id, member.status)}
+                      title={member.status === 'active' ? 'Deactivate' : 'Activate'}
+                      className={`p-1.5 rounded transition-colors flex-1 ${
+                        member.status === 'active'
+                          ? 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900'
+                          : 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900'
+                      }`}
+                    >
+                      <Edit className="w-4 h-4 mx-auto" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMember(member._id)}
+                      title="Delete"
+                      className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors flex-1"
+                    >
+                      <Trash2 className="w-4 h-4 mx-auto" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
               <tr>
@@ -428,7 +546,7 @@ const AdminMemberManagementPage = () => {
                         setSelectedMembers(new Set())
                       }
                     }}
-                    className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
                   />
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -458,7 +576,7 @@ const AdminMemberManagementPage = () => {
               {members.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="8"
                     className="px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 text-center text-gray-500 dark:text-gray-400 text-sm"
                   >
                     No members found
@@ -483,7 +601,7 @@ const AdminMemberManagementPage = () => {
                           }
                           setSelectedMembers(newSet)
                         }}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-600 cursor-pointer"
+                        className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
                       />
                     </td>
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-gray-900 dark:text-white text-sm">

@@ -217,27 +217,22 @@ const AdminDashboard = () => {
     yellow: 'text-yellow-400',
   }
 
-  const navigationItems = [
-    { label: 'Users', path: '/admin-users', icon: Users },
-    { label: 'Members', path: '/admin-members', icon: Target },
-    { label: 'Reports', path: '/reports', icon: BarChart3 },
-    { label: 'Settings', path: '/admin-settings', icon: Settings },
-  ]
+  const navigationItems = []
 
   return (
     <div className="flex h-screen bg-slate-950">
-      {/* Sidebar */}
+      {/* Sidebar - Hidden on Mobile */}
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col`}
+        } bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col hidden md:flex`}
       >
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           {sidebarOpen && <h1 className="text-xl font-bold text-blue-400">Admin</h1>}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            className="hidden md:flex p-2 hover:bg-slate-800 rounded-lg transition-colors"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -274,19 +269,19 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-8">
-          <h2 className="text-2xl font-bold text-white">Dashboard</h2>
-          <div className="flex items-center gap-4">
+        {/* Top Bar - Mobile Optimized */}
+        <div className="h-12 sm:h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-3 sm:px-6 md:px-8">
+          <h2 className="text-lg sm:text-2xl font-bold text-white">Dashboard</h2>
+          <div className="flex items-center gap-2 sm:gap-4">
             {lastUpdated && (
-              <span className="text-sm text-slate-400">
+              <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
             <button
               onClick={() => fetchStats(true)}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 min-h-[36px]"
             >
               <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
               <span>Refresh</span>
@@ -295,25 +290,29 @@ const AdminDashboard = () => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-8">
-          <div className="space-y-8">
+        <div className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
               {statCards.map((card, idx) => {
                 const Icon = card.icon
                 return (
                   <div
                     key={idx}
-                    className={`${card.bgColor} ${card.borderColor} border rounded-xl p-6 backdrop-blur-sm hover:shadow-lg transition-shadow`}
+                    className={`${card.bgColor} ${card.borderColor} border rounded-xl p-3 sm:p-4 md:p-6 backdrop-blur-sm hover:shadow-lg transition-shadow`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-slate-400 text-sm font-medium">{card.label}</p>
-                        <p className={`${colorMap[card.color]} text-3xl font-bold mt-2`}>
+                        <p className="text-slate-400 text-xs sm:text-sm font-medium">
+                          {card.label}
+                        </p>
+                        <p
+                          className={`${colorMap[card.color]} text-xl sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2`}
+                        >
                           {card.value}
                         </p>
                       </div>
-                      <Icon className={`${colorMap[card.color]} opacity-20`} size={32} />
+                      <Icon className={`${colorMap[card.color]} opacity-20`} size={24} />
                     </div>
                   </div>
                 )
@@ -321,9 +320,11 @@ const AdminDashboard = () => {
             </div>
 
             {/* Quick Info */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">System Overview</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
+                System Overview
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Total Users:</span>
                   <span className="text-white font-medium">{stats.totalUsers}</span>

@@ -272,7 +272,7 @@ const PersonalReportsPage = () => {
             Generate Report
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-5 lg:grid-cols-3 lg:gap-5">
             {/* Report Type Selection */}
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
@@ -324,7 +324,7 @@ const PersonalReportsPage = () => {
           transition={{ delay: 0.2 }}
         >
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4 lg:gap-5">
             <motion.div
               className="card dark:bg-gray-800 dark:border-gray-700"
               initial={{ opacity: 0, x: -20 }}
@@ -500,7 +500,7 @@ const PersonalReportsPage = () => {
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
               Summary Statistics
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:gap-5">
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <p className="text-gray-600 dark:text-gray-400 text-xs mb-1">Total Durood</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-white">

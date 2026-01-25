@@ -241,9 +241,7 @@ const AdminAnalyticsPage = () => {
           <div className="animate-spin mb-4 flex justify-center">
             <Users size={48} className="text-blue-500" />
           </div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">
-            Loading analytics...
-          </p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading analytics...</p>
         </div>
       </div>
     )
@@ -280,31 +278,31 @@ const AdminAnalyticsPage = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-6 sm:py-8 px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-                <Users size={36} className="text-blue-500" />
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2 sm:gap-3">
+                <Users size={28} className="text-blue-500 sm:w-9 sm:h-9" />
                 Users & Members Analytics
               </h1>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-400 mt-1 sm:mt-2">
                 Comprehensive user, collector, and member management insights
               </p>
             </div>
           </div>
 
           {/* Control Bar */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-4 flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-4 flex-wrap">
-              <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-3 sm:p-4 md:p-5 flex flex-col gap-3 sm:gap-4 sm:flex-wrap sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-2 sm:gap-3 md:gap-4 flex-wrap">
+              <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-2 sm:pl-3 md:pl-4">
                 <Filter size={18} className="text-slate-600 dark:text-slate-400" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 sm:px-3 py-2 sm:py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="status">Sort by Status</option>
                   <option value="role">Sort by Role</option>
@@ -347,13 +345,13 @@ const AdminAnalyticsPage = () => {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-6 mb-8">
           {metricCards.map((metric, idx) => {
             const Icon = metric.icon
             return (
               <div
                 key={idx}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow p-6"
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow p-4 sm:p-5 md:p-6"
               >
                 <div className="flex justify-between items-start mb-4">
                   <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
@@ -393,8 +391,8 @@ const AdminAnalyticsPage = () => {
         </div>
 
         {/* User Status Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 mb-8">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
             <p className="text-slate-600 dark:text-slate-400 text-sm font-medium mb-2">
               Active Users
             </p>
@@ -408,7 +406,7 @@ const AdminAnalyticsPage = () => {
               % of total
             </p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
             <p className="text-slate-600 dark:text-slate-400 text-sm font-medium mb-2">
               Inactive Users
             </p>
@@ -422,7 +420,7 @@ const AdminAnalyticsPage = () => {
               % of total
             </p>
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
             <p className="text-slate-600 dark:text-slate-400 text-sm font-medium mb-2">
               Pending Approvals
             </p>
@@ -439,7 +437,7 @@ const AdminAnalyticsPage = () => {
             <Eye size={16} />
             Chart Visibility
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-5 md:gap-4">
             {[
               { key: 'userDistribution', label: 'User Distribution' },
               { key: 'memberStatus', label: 'Member Status' },
@@ -468,10 +466,10 @@ const AdminAnalyticsPage = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 lg:grid-cols-2 lg:gap-6 mb-8">
           {/* User Distribution Pie */}
           {visibleCharts.userDistribution && (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 User Role Distribution
               </h2>
@@ -502,7 +500,7 @@ const AdminAnalyticsPage = () => {
 
           {/* Member Status Pie */}
           {visibleCharts.memberStatus && (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 Member Status Distribution
               </h2>
@@ -533,7 +531,7 @@ const AdminAnalyticsPage = () => {
 
           {/* User Growth Timeline */}
           {visibleCharts.timeline && userGrowth.length > 0 && (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 User Growth Timeline
               </h2>
@@ -559,7 +557,7 @@ const AdminAnalyticsPage = () => {
 
           {/* Role Distribution Bar */}
           {visibleCharts.roleDistribution && (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 User Roles Breakdown
               </h2>
@@ -590,36 +588,106 @@ const AdminAnalyticsPage = () => {
 
         {/* Users List Table */}
         {visibleCharts.usersList && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6">
+            <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
                 Users List
               </h2>
-              <div className="relative">
+              <div className="relative w-full sm:w-64">
                 <Search size={18} className="absolute left-3 top-3 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-3 sm:pr-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3 border border-slate-200 dark:border-slate-600"
+                  >
+                    <div className="mb-2">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Email
+                      </p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 break-all">
+                        {user.email}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Role
+                        </p>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-0.5 ${
+                            user.role === 'admin'
+                              ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300'
+                              : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300'
+                          }`}
+                        >
+                          {user.role || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Status
+                        </p>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-0.5 ${
+                            user.status === 'active'
+                              ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300'
+                              : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300'
+                          }`}
+                        >
+                          {user.status || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Created
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                          {user.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-slate-500">
+                  No users found matching your search
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-100 dark:bg-slate-700/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-900 dark:text-white">
                       Created At
                     </th>
                   </tr>
@@ -627,11 +695,14 @@ const AdminAnalyticsPage = () => {
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {filteredUsers.length > 0 ? (
                     filteredUsers.map((user, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                      <tr
+                        key={idx}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                      >
+                        <td className="px-4 sm:px-6 py-4 text-sm text-slate-700 dark:text-slate-300 font-medium">
                           {user.email}
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-4 sm:px-6 py-4 text-sm">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               user.role === 'admin'
@@ -642,7 +713,7 @@ const AdminAnalyticsPage = () => {
                             {user.role || 'N/A'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-4 sm:px-6 py-4 text-sm">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               user.status === 'active'
@@ -653,10 +724,8 @@ const AdminAnalyticsPage = () => {
                             {user.status || 'N/A'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                          {user.createdAt
-                            ? new Date(user.createdAt).toLocaleDateString()
-                            : 'N/A'}
+                        <td className="px-4 sm:px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                         </td>
                       </tr>
                     ))

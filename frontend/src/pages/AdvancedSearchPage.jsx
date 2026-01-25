@@ -161,7 +161,7 @@ const AdvancedSearchPage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-6">
           {/* Main Search Area */}
           <div className="lg:col-span-3 space-y-6">
             {/* Search Type Selection */}
@@ -226,7 +226,7 @@ const AdvancedSearchPage = () => {
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                   Filters
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Status

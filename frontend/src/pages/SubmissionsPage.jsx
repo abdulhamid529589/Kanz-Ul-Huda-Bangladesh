@@ -162,13 +162,13 @@ const SubmissionsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+      <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
             Submissions
           </h1>
           {!canSubmit && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+            <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-2 sm:mt-2">
               ⚠️ Submissions are only available on Friday (Bangladesh time)
             </p>
           )}
@@ -181,7 +181,7 @@ const SubmissionsPage = () => {
           }}
           disabled={!canSubmit}
           title={!canSubmit ? 'Submissions are only allowed on Friday' : 'Create new submission'}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors w-full sm:w-auto justify-center text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-3 sm:py-2.5 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors w-full md:w-auto justify-center text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>New Submission</span>
@@ -190,22 +190,22 @@ const SubmissionsPage = () => {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-5 md:p-6">
+          <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 md:mb-5">
             {editingId ? 'Edit Submission' : 'Create New Submission'}
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-4">
               {/* Member Select */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Member *
                 </label>
                 <select
                   value={formData.memberId}
                   onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-base min-h-[44px]"
+                  className="w-full px-4 py-3 sm:py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-base min-h-[48px]"
                   required
                 >
                   <option value="">Select a member...</option>
@@ -219,14 +219,14 @@ const SubmissionsPage = () => {
 
               {/* Durood Count */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Durood Count *
                 </label>
                 <input
                   type="number"
                   value={formData.duroodCount}
                   onChange={(e) => setFormData({ ...formData, duroodCount: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-base min-h-[44px]"
+                  className="w-full px-4 py-3 sm:py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-base min-h-[48px]"
                   placeholder="Enter durood count"
                   min="1"
                   required
@@ -236,23 +236,23 @@ const SubmissionsPage = () => {
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none min-h-[100px]"
                 placeholder="Add any notes (optional)"
                 rows="3"
               />
             </div>
 
             {/* Form Actions */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+            <div className="flex flex-col gap-3 sm:gap-3 pt-2 sm:flex-row sm:gap-3 md:gap-4">
               <button
                 type="submit"
-                className="px-4 sm:px-6 py-2.5 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors min-h-[44px] text-sm sm:text-base"
+                className="px-4 py-3 sm:py-2.5 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors min-h-[48px] text-sm sm:text-base font-medium flex-1 sm:flex-none"
               >
                 {editingId ? 'Update' : 'Create'} Submission
               </button>
@@ -263,7 +263,7 @@ const SubmissionsPage = () => {
                   setEditingId(null)
                   setFormData({ memberId: '', duroodCount: '', notes: '' })
                 }}
-                className="px-4 sm:px-6 py-2.5 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors min-h-[44px] text-sm sm:text-base"
+                className="px-4 py-3 sm:py-2.5 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors min-h-[48px] text-sm sm:text-base font-medium flex-1 sm:flex-none"
               >
                 Cancel
               </button>
@@ -273,8 +273,8 @@ const SubmissionsPage = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4">
-        <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6">
+        <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:gap-4">
           {/* Search */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />

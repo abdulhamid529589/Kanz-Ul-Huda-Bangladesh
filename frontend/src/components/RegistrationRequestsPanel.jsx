@@ -155,7 +155,7 @@ const RegistrationRequestsPanel = ({ onStatsChange }) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Registration Requests Management</h2>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-5 lg:grid-cols-4 lg:gap-5 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <p className="text-sm text-gray-600 mb-1">Total Requests</p>
           <p className="text-3xl font-bold text-blue-600">{stats.total}</p>

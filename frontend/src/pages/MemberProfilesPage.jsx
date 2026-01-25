@@ -97,7 +97,7 @@ const MemberProfilesPage = () => {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-6 lg:grid-cols-3 lg:gap-6">
         {/* Members List */}
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col h-full">
@@ -174,7 +174,7 @@ const MemberProfilesPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   <div className="bg-white bg-opacity-20 rounded-lg p-3">
                     <p className="text-sm opacity-90">Total Durood</p>
                     <p className="text-3xl font-bold">{formatNumber(selectedStats.totalDurood)}</p>
@@ -251,7 +251,7 @@ const MemberProfilesPage = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Member Details
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-5">
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
@@ -320,7 +320,7 @@ const MemberProfilesPage = () => {
                   Statistics
                 </h3>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-5 mb-6">
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                       Durood per Submission

@@ -357,7 +357,7 @@ const AdminSettingsPage = () => {
           </div>
 
           {/* Settings Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:gap-6 lg:grid-cols-2 lg:gap-6">
             {filteredSettings.map((setting) => {
               const isRestricted = isRestrictedSetting(setting.key)
               const isDisabled = isRestricted && !isMainAdmin

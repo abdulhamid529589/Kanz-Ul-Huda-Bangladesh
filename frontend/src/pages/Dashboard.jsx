@@ -237,7 +237,7 @@ const Dashboard = () => {
       )}
 
       {/* Recent Activity & Pending Requests */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:gap-6 lg:grid-cols-2 lg:gap-6">
         {isMainAdmin && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}

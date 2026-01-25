@@ -181,18 +181,18 @@ const MembersPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+      <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
             Members Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mt-1">
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2 sm:mt-1">
             Total: {members.length} members
           </p>
         </div>
         <button
           onClick={handleAddMember}
-          className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center"
+          className="btn-primary flex items-center gap-2 w-full md:w-auto justify-center"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span className="text-sm sm:text-base">Add Member</span>
@@ -211,7 +211,7 @@ const MembersPage = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="card dark:bg-gray-800 px-3 sm:px-4 md:px-6">
+      <div className="card dark:bg-gray-800 px-4 sm:px-5 md:px-6">
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -282,7 +282,7 @@ const MembersPage = () => {
         ) : (
           <>
             {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
+            <div className="lg:hidden space-y-3 md:space-y-4">
               {members.map((member) => (
                 <div
                   key={member._id}
@@ -357,7 +357,7 @@ const MembersPage = () => {
             </div>
 
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                   <tr>
