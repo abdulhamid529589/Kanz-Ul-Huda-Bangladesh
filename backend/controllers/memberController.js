@@ -179,7 +179,8 @@ export const getMemberById = async (req, res) => {
  */
 export const createMember = async (req, res) => {
   try {
-    const { fullName, phoneNumber, email, country, city, facebookUrl, status, category, notes } = req.body
+    const { fullName, phoneNumber, email, country, city, facebookUrl, status, category, notes } =
+      req.body
 
     // Validate required fields
     if (!fullName || !phoneNumber || !country) {
@@ -233,8 +234,9 @@ export const createMember = async (req, res) => {
  * @access  Private (Only creator or admin)
  */
 export const updateMember = async (req, res) => {
-  try {facebookUrl,
-    const { fullName, phoneNumber, email, country, city, status, category, notes } = req.body
+  try {
+    const { fullName, phoneNumber, email, country, city, facebookUrl, status, category, notes } =
+      req.body
 
     let member = await Member.findById(req.params.id)
 

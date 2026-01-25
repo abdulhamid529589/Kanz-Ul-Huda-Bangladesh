@@ -70,11 +70,24 @@ app.use(
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true)
 
+      // Allow if origin is in allowed list
       if (allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        callback(new Error('CORS not allowed for this origin'))
+        return callback(null, true)
       }
+
+      // Allow requests from vercel.app domains and localhost for development
+      if (
+        origin.includes('vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        process.env.NODE_ENV === 'development'
+      ) {
+        return callback(null, true)
+      }
+
+      // Log rejected origins for debugging
+      console.warn(`CORS rejected origin: ${origin}`)
+      callback(new Error('CORS not allowed for this origin'))
     },
     credentials: true,
   }),
