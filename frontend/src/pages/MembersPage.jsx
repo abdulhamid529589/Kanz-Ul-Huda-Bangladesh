@@ -79,6 +79,7 @@ const MembersPage = () => {
   useEffect(() => {
     fetchMembers()
   }, [fetchMembers])
+
   useEffect(() => {
     const fetchUsers = async () => {
       if (!token) return
@@ -177,12 +178,20 @@ const MembersPage = () => {
     const endpoint = modal.type === 'add' ? '/members' : `/members/${modal.member._id}`
     const method = modal.type === 'add' ? 'POST' : 'PUT'
 
-    const { ok } = await apiCall(endpoint, { method, body: JSON.stringify(formData) }, token)
+    const { ok, data } = await apiCall(endpoint, { method, body: JSON.stringify(formData) }, token)
     setSubmitting(false)
 
     if (ok) {
       setModal({ type: null, member: null })
       fetchMembers()
+      showSuccess(
+        modal.type === 'add' ? 'Member added successfully!' : 'Member updated successfully!',
+      )
+    } else {
+      showError(
+        data?.message ||
+          (modal.type === 'add' ? 'Failed to add member' : 'Failed to update member'),
+      )
     }
   }
 

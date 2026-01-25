@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react'
-import { User, Mail, Phone, Globe, Calendar, TrendingUp, Award } from 'lucide-react'
+import {
+  User,
+  Mail,
+  Phone,
+  Globe,
+  Calendar,
+  TrendingUp,
+  Award,
+  Copy,
+  ExternalLink,
+  Info,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
+import toast from 'react-hot-toast'
 
 const MemberProfilesPage = () => {
   const { token } = useAuth()
@@ -36,7 +48,6 @@ const MemberProfilesPage = () => {
     fetchData()
   }, [token])
 
-  // Get member stats
   const getMemberStats = (memberId) => {
     const memberSubs = submissions.filter((sub) => sub.member?._id === memberId)
 
@@ -62,6 +73,30 @@ const MemberProfilesPage = () => {
       lastSubmission,
       recentSubmissions: thisYearSubs.slice(0, 5),
     }
+  }
+
+  // Extract Facebook ID from URL
+  const extractFacebookInfo = (facebookUrl) => {
+    if (!facebookUrl) return { id: null, username: null }
+
+    try {
+      // Match profile.php?id=123456
+      const idMatch = facebookUrl.match(/(?:id|user)=(\d+)/)
+      if (idMatch) return { id: idMatch[1], username: null }
+
+      // Match facebook.com/username
+      const usernameMatch = facebookUrl.match(/facebook\.com\/([a-zA-Z0-9.]+)/i)
+      if (usernameMatch) return { id: null, username: usernameMatch[1] }
+
+      return { id: null, username: null }
+    } catch (error) {
+      return { id: null, username: null }
+    }
+  }
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text)
+    toast.success(`${label} copied!`)
   }
 
   // Filter and sort members
@@ -196,52 +231,173 @@ const MemberProfilesPage = () => {
                   Contact Information
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {selectedMember.phoneNumber}
-                    </span>
+                  <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          {selectedMember.phoneNumber}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(selectedMember.phoneNumber, 'Phone')}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Copy phone number"
+                    >
+                      <Copy className="w-4 h-4 text-gray-500" />
+                    </button>
                   </div>
+
                   {selectedMember.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {selectedMember.email}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {selectedMember.country}
-                    </span>
-                  </div>
-                  {selectedMember.city && (
-                    <div className="flex items-center gap-3">
-                      <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {selectedMember.city}
-                      </span>
-                    </div>
-                  )}
-                  {selectedMember.facebookUrl && (
-                    <div className="flex items-center gap-3">
-                      <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <a
-                        href={selectedMember.facebookUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 dark:text-primary-400 hover:underline"
+                    <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                          <span className="text-gray-700 dark:text-gray-300 font-medium break-all">
+                            {selectedMember.email}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(selectedMember.email, 'Email')}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                        title="Copy email"
                       >
-                        Facebook Profile
-                      </a>
+                        <Copy className="w-4 h-4 text-gray-500" />
+                      </button>
                     </div>
                   )}
-                  <div className="flex items-center gap-3">
+
+                  <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Country</p>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          {selectedMember.country}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedMember.city && (
+                    <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">City</p>
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">
+                            {selectedMember.city}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMember.facebookUrl && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700">
+                        <div className="flex items-center gap-3">
+                          <Globe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Facebook Profile
+                            </p>
+                            <a
+                              href={selectedMember.facebookUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 dark:text-primary-400 hover:underline font-medium inline-flex items-center gap-1"
+                            >
+                              View Profile
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(selectedMember.facebookUrl, 'Facebook URL')
+                          }
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                          title="Copy Facebook URL"
+                        >
+                          <Copy className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+
+                      {(() => {
+                        const fbInfo = extractFacebookInfo(selectedMember.facebookUrl)
+                        return (
+                          <>
+                            {fbInfo.id && (
+                              <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                                <div className="flex items-center gap-3">
+                                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                  <div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      Facebook ID
+                                    </p>
+                                    <span className="text-gray-900 dark:text-white font-mono font-medium">
+                                      {fbInfo.id}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => copyToClipboard(fbInfo.id, 'Facebook ID')}
+                                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors flex-shrink-0"
+                                  title="Copy Facebook ID"
+                                >
+                                  <Copy className="w-4 h-4 text-blue-600" />
+                                </button>
+                              </div>
+                            )}
+                            {fbInfo.username && (
+                              <div className="flex items-center justify-between gap-3 pb-3 border-b dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                                <div className="flex items-center gap-3">
+                                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                  <div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      Facebook Username
+                                    </p>
+                                    <span className="text-gray-900 dark:text-white font-mono font-medium">
+                                      {fbInfo.username}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    copyToClipboard(fbInfo.username, 'Facebook Username')
+                                  }
+                                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors flex-shrink-0"
+                                  title="Copy Facebook Username"
+                                >
+                                  <Copy className="w-4 h-4 text-blue-600" />
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 pt-3">
                     <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Member since {new Date(selectedMember.memberSince).toLocaleDateString()}
-                    </span>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        {new Date(
+                          selectedMember.createdAt || selectedMember.memberSince,
+                        ).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -261,7 +417,7 @@ const MemberProfilesPage = () => {
                   <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">Category</p>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {selectedMember.category || 'N/A'}
+                      {selectedMember.category || 'Regular'}
                     </p>
                   </div>
                   <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
@@ -276,6 +432,24 @@ const MemberProfilesPage = () => {
                       {selectedStats.submissions}
                     </p>
                   </div>
+                  {selectedMember.submissionCount && (
+                    <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Total All Time</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {selectedMember.submissionCount}
+                      </p>
+                    </div>
+                  )}
+                  {selectedMember.totalDurood && (
+                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Durood (All Time)
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {formatNumber(selectedMember.totalDurood)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

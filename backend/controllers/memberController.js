@@ -210,7 +210,7 @@ export const createMember = async (req, res) => {
       status: status || 'active',
       category: category || 'Regular',
       notes,
-      createdBy: req.user.id,
+      createdBy: req.user._id,
     })
 
     res.status(201).json({
@@ -249,7 +249,7 @@ export const updateMember = async (req, res) => {
 
     // Authorization check: only creator or admin can update
     const creatorId = member.createdBy?.toString()
-    const currentUserId = req.user.id.toString()
+    const currentUserId = req.user._id.toString()
     const isAdmin = req.user.role === 'admin'
 
     if (creatorId !== currentUserId && !isAdmin) {
@@ -316,7 +316,7 @@ export const deleteMember = async (req, res) => {
 
     // Authorization check: only creator or admin can delete
     const creatorId = member.createdBy?.toString()
-    const currentUserId = req.user.id.toString()
+    const currentUserId = req.user._id.toString()
     const isAdmin = req.user.role === 'admin'
 
     if (creatorId !== currentUserId && !isAdmin) {

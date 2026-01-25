@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  Clock,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall } from '../utils/api'
@@ -38,6 +39,8 @@ const AdminDashboard = () => {
     weeklySubmissions: 0,
   })
 
+  const [recentSubmissions, setRecentSubmissions] = useState([])
+  const [membersDurood, setMembersDurood] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(null)
@@ -99,6 +102,39 @@ const AdminDashboard = () => {
             newStats.weeklyDuroods = submissions
               .filter((s) => new Date(s.submissionDateTime || s.createdAt) >= oneWeekAgo)
               .reduce((sum, s) => sum + (s.duroodCount || 0), 0)
+
+            // Store recent submissions (last 10)
+            const recentSubs = submissions
+              .sort(
+                (a, b) =>
+                  new Date(b.submissionDateTime || b.createdAt) -
+                  new Date(a.submissionDateTime || a.createdAt),
+              )
+              .slice(0, 10)
+            setRecentSubmissions(recentSubs)
+
+            // Calculate member durood count
+            const memberDuroodMap = {}
+            submissions.forEach((sub) => {
+              const memberId = sub.member?._id || sub.member
+              const memberName = sub.member?.fullName || 'Unknown'
+              if (!memberDuroodMap[memberId]) {
+                memberDuroodMap[memberId] = {
+                  name: memberName,
+                  durood: 0,
+                  submissions: 0,
+                  _id: memberId,
+                }
+              }
+              memberDuroodMap[memberId].durood += sub.duroodCount || 0
+              memberDuroodMap[memberId].submissions += 1
+            })
+
+            // Sort by durood count and get top 10
+            const sortedMembers = Object.values(memberDuroodMap)
+              .sort((a, b) => b.durood - a.durood)
+              .slice(0, 10)
+            setMembersDurood(sortedMembers)
           }
         } catch (err) {
           console.error('Error fetching submissions:', err)
@@ -343,6 +379,86 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Recent Submissions */}
+            {recentSubmissions.length > 0 && (
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Clock size={20} />
+                  Recent Submissions
+                </h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {recentSubmissions.map((sub, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors border border-slate-600/50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-medium text-sm sm:text-base">
+                          {sub.member?.fullName || 'Unknown Member'}
+                        </p>
+                        <p className="text-slate-400 text-xs sm:text-sm">
+                          {new Date(sub.submissionDateTime || sub.createdAt).toLocaleDateString(
+                            'en-US',
+                            {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            },
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0 text-right ml-3">
+                        <p className="text-green-400 font-bold text-sm sm:text-lg">
+                          {sub.duroodCount || 0}
+                        </p>
+                        <p className="text-slate-400 text-xs">durood</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Members Durood Count */}
+            {membersDurood.length > 0 && (
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Award size={20} />
+                  Top Members by Durood Count
+                </h3>
+                <div className="space-y-2">
+                  {membersDurood.map((member, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors border border-slate-600/50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-400 font-semibold text-xs sm:text-sm w-6">
+                            #{idx + 1}
+                          </span>
+                          <p className="text-white font-medium text-sm sm:text-base truncate">
+                            {member.name}
+                          </p>
+                        </div>
+                        <p className="text-slate-400 text-xs sm:text-sm ml-8">
+                          {member.submissions} submission{member.submissions !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0 text-right ml-3">
+                        <p className="text-blue-400 font-bold text-sm sm:text-lg">
+                          {member.durood.toLocaleString()}
+                        </p>
+                        <p className="text-slate-400 text-xs">total</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
