@@ -1,12 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Plus, Edit2, Trash2, Search, Filter, Calendar } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber, formatTimeAgo } from '../utils/api'
 import { showError, showSuccess, confirmAction } from '../utils/toast'
+import { useDebounce } from '../hooks/useDebounce'
+import { useCache } from '../hooks/useCache'
 
 const SubmissionsPage = () => {
   const { token, user } = useAuth()
+  const { get: getCached, set: setCached } = useCache()
   const [submissions, setSubmissions] = useState([])
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,6 +18,10 @@ const SubmissionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterMember, setFilterMember] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+
+  // Debounce search input
+  const debouncedSearch = useDebounce(searchTerm, 300)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -32,9 +39,19 @@ const SubmissionsPage = () => {
 
   const canSubmit = isFriday()
 
-  // Fetch submissions and members
+  // Fetch submissions and members with caching
   const fetchData = useCallback(async () => {
     if (!token || !user?._id) return
+
+    const cacheKey = `submissions_${user._id}`
+    const cached = getCached(cacheKey)
+
+    if (cached) {
+      setSubmissions(cached.submissions)
+      setMembers(cached.members)
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     try {
@@ -43,14 +60,21 @@ const SubmissionsPage = () => {
         apiCall(`/members?limit=1000&createdBy=${user._id}`, {}, token),
       ])
 
-      if (submissionsRes.ok) setSubmissions(submissionsRes.data.data || [])
-      if (membersRes.ok) setMembers(membersRes.data.data || [])
+      if (submissionsRes.ok) {
+        const subs = submissionsRes.data.data || []
+        setSubmissions(subs)
+      }
+      if (membersRes.ok) {
+        const mems = membersRes.data.data || []
+        setMembers(mems)
+        setCached(cacheKey, { submissions: submissionsRes.data.data || [], members: mems })
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
-  }, [token, user?._id])
+  }, [token, user?._id, getCached, setCached])
 
   useEffect(() => {
     fetchData()
@@ -139,17 +163,22 @@ const SubmissionsPage = () => {
     }
   }
 
-  // Filter submissions
-  const filteredSubmissions = submissions.filter((sub) => {
-    // Only show submissions for members created by current user
-    const memberIds = members.map((m) => m._id)
-    const isMyMember = memberIds.includes(sub.member?._id)
+  // Optimized filtering with useMemo - O(1) when data hasn't changed
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((sub) => {
+      const memberIds = members.map((m) => m._id)
+      const isMyMember = memberIds.includes(sub.member?._id)
 
-    const memberName = sub.member?.fullName.toLowerCase() || ''
-    const matchesSearch = memberName.includes(searchTerm.toLowerCase())
-    const matchesMember = !filterMember || sub.member?._id === filterMember
-    return isMyMember && matchesSearch && matchesMember
-  })
+      const memberName = sub.member?.fullName.toLowerCase() || ''
+      const matchesSearch = memberName.includes(debouncedSearch.toLowerCase())
+      const matchesMember = !filterMember || sub.member?._id === filterMember
+
+      const submissionDate = new Date(sub.submissionDateTime).toISOString().split('T')[0]
+      const matchesDate = submissionDate === selectedDate
+
+      return isMyMember && matchesSearch && matchesMember && matchesDate
+    })
+  }, [submissions, members, debouncedSearch, filterMember, selectedDate])
 
   if (loading) {
     return (
@@ -308,6 +337,7 @@ const SubmissionsPage = () => {
             onClick={() => {
               setSearchTerm('')
               setFilterMember('')
+              setSelectedDate(new Date().toISOString().split('T')[0])
             }}
             className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
           >
@@ -412,17 +442,35 @@ const SubmissionsPage = () => {
 
         {/* Stats Footer */}
         <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-t border-gray-300 dark:border-gray-600">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Showing <span className="font-semibold">{filteredSubmissions.length}</span> submissions
-            {filteredSubmissions.length > 0 && (
-              <span className="ml-4">
-                Total Durood:{' '}
-                <span className="font-semibold text-primary-600 dark:text-primary-400">
-                  {formatNumber(filteredSubmissions.reduce((sum, sub) => sum + sub.duroodCount, 0))}
-                </span>
-              </span>
-            )}
-          </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                <span className="font-semibold">{filteredSubmissions.length}</span> submissions on{' '}
+                <span className="font-semibold">{new Date(selectedDate).toLocaleDateString()}</span>
+                {filteredSubmissions.length > 0 && (
+                  <span className="ml-4">
+                    Total Durood:{' '}
+                    <span className="font-semibold text-primary-600 dark:text-primary-400">
+                      {formatNumber(
+                        filteredSubmissions.reduce((sum, sub) => sum + sub.duroodCount, 0),
+                      )}
+                    </span>
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex-1 max-w-xs">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Filter by Date
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Search, Plus, Eye, Edit, Trash2, X, Phone, MapPin, User } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { apiCall } from '../utils/api'
 import { showError, showSuccess, confirmAction } from '../utils/toast'
 import { useIsMobile } from '../hooks/useMediaQuery'
+import { useDebounce } from '../hooks/useDebounce'
+import { useCache } from '../hooks/useCache'
 
 const MembersPage = () => {
   const { token, user } = useAuth()
   const isMobile = useIsMobile()
+  const { get: getCached, set: setCached } = useCache()
   const [members, setMembers] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -17,6 +20,11 @@ const MembersPage = () => {
   const [filterCountry, setFilterCountry] = useState('')
   const [filterCreatedBy, setFilterCreatedBy] = useState('')
   const [modal, setModal] = useState({ type: null, member: null })
+
+  // Debounce search to reduce API calls
+  const debouncedSearch = useDebounce(searchTerm, 300)
+  const debouncedCountry = useDebounce(filterCountry, 300)
+
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -35,29 +43,42 @@ const MembersPage = () => {
   const fetchMembers = useCallback(async () => {
     if (!token) return
 
+    const cacheKey = `members_${debouncedSearch}_${filterStatus}_${debouncedCountry}_${filterCreatedBy}`
+    const cached = getCached(cacheKey)
+
+    // Return cached data if available
+    if (cached) {
+      setMembers(cached)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     const params = new URLSearchParams()
-    if (searchTerm) params.append('search', searchTerm)
+    if (debouncedSearch) params.append('search', debouncedSearch)
     if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus)
-    if (filterCountry) params.append('country', filterCountry)
+    if (debouncedCountry) params.append('country', debouncedCountry)
     if (filterCreatedBy) params.append('createdBy', filterCreatedBy)
 
     const { ok, data } = await apiCall(`/members?${params.toString()}`, {}, token)
     if (ok) {
       setMembers(data.data)
+      setCached(cacheKey, data.data) // Cache the result
     }
     setLoading(false)
-  }, [searchTerm, filterStatus, filterCountry, filterCreatedBy, token])
+  }, [
+    debouncedSearch,
+    filterStatus,
+    debouncedCountry,
+    filterCreatedBy,
+    token,
+    getCached,
+    setCached,
+  ])
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchMembers()
-    }, 300)
-
-    return () => clearTimeout(timeoutId)
+    fetchMembers()
   }, [fetchMembers])
-
-  // Fetch users for "Created By" filter
   useEffect(() => {
     const fetchUsers = async () => {
       if (!token) return
@@ -545,6 +566,23 @@ const MembersPage = () => {
                   <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
                 )}
               </div>
+
+              {/* Facebook URL Display in View Mode */}
+              {modal.type === 'view' && formData.facebookUrl && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Facebook Profile
+                  </label>
+                  <a
+                    href={formData.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                  >
+                    {formData.facebookUrl}
+                  </a>
+                </div>
+              )}
 
               {/* City */}
               <div>

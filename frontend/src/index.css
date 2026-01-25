@@ -48,6 +48,10 @@
     /* Prevent zoom pinch on touch devices */
     touch-action: pan-x pan-y;
     /* Better overflow handling on mobile */
+    /* GPU acceleration for faster rendering */
+    will-change: auto;
+    /* Reduce paint operations */
+    contain: layout style paint;
     overflow-x: hidden;
   }
 

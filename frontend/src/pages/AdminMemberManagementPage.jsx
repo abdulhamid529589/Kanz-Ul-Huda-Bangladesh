@@ -447,7 +447,7 @@ const AdminMemberManagementPage = () => {
                         }
                         setSelectedMembers(newSet)
                       }}
-                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer mt-1"
+                      className="w-2 h-2 appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded cursor-pointer checked:bg-primary-600 checked:border-primary-600 mt-1"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -546,7 +546,7 @@ const AdminMemberManagementPage = () => {
                         setSelectedMembers(new Set())
                       }
                     }}
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
+                    className="w-2 h-2 appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded cursor-pointer checked:bg-primary-600 checked:border-primary-600"
                   />
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -601,7 +601,7 @@ const AdminMemberManagementPage = () => {
                           }
                           setSelectedMembers(newSet)
                         }}
-                        className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
+                        className="w-2 h-2 appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded cursor-pointer checked:bg-primary-600 checked:border-primary-600"
                       />
                     </td>
                     <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-gray-900 dark:text-white text-sm">

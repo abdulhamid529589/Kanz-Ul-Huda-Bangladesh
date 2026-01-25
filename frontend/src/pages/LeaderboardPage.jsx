@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Trophy, TrendingUp, Award, Zap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiCall, formatNumber } from '../utils/api'
+import { useCache } from '../hooks/useCache'
 
 const LeaderboardPage = () => {
   const { token } = useAuth()
+  const { get: getCached, set: setCached } = useCache()
   const [members, setMembers] = useState([])
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,6 +14,16 @@ const LeaderboardPage = () => {
 
   const fetchData = useCallback(async () => {
     if (!token) return
+
+    const cacheKey = `leaderboard_${timeframe}`
+    const cached = getCached(cacheKey)
+
+    if (cached) {
+      setMembers(cached.members)
+      setSubmissions(cached.submissions)
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
     try {
@@ -21,20 +33,26 @@ const LeaderboardPage = () => {
       ])
 
       if (submissionsRes.ok) setSubmissions(submissionsRes.data.data || [])
-      if (membersRes.ok) setMembers(membersRes.data.data || [])
+      if (membersRes.ok) {
+        setMembers(membersRes.data.data || [])
+        setCached(cacheKey, {
+          submissions: submissionsRes.data.data || [],
+          members: membersRes.data.data || [],
+        })
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, timeframe, getCached, setCached])
 
   useEffect(() => {
     fetchData()
   }, [fetchData])
 
-  // Calculate rankings based on timeframe
-  const getLeaderboardData = () => {
+  // Memoized leaderboard calculation - O(n) only when data changes
+  const leaderboard = useMemo(() => {
     const now = new Date()
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
@@ -56,7 +74,7 @@ const LeaderboardPage = () => {
       )
     }
 
-    const stats = members
+    return members
       .map((member) => {
         const memberSubs = filteredSubmissions.filter((sub) => sub.member?._id === member._id)
         const totalDurood = memberSubs.reduce((sum, sub) => sum + sub.duroodCount, 0)
@@ -72,11 +90,7 @@ const LeaderboardPage = () => {
       })
       .filter((m) => m.duroodCount > 0)
       .sort((a, b) => b.duroodCount - a.duroodCount)
-
-    return stats
-  }
-
-  const leaderboard = getLeaderboardData()
+  }, [members, submissions, timeframe])
 
   // Get medal icon
   const getMedalIcon = (rank) => {

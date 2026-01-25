@@ -386,7 +386,7 @@ const AdminUserManagementPage = () => {
               className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 md:gap-5 lg:grid-cols-2 lg:gap-6 relative"
             >
               {/* Checkbox */}
-              <div className="absolute -left-6 top-4 flex items-center">
+              <div className="absolute -left-6 top-4 w-3 h-3 flex items-center justify-center">
                 <input
                   type="checkbox"
                   checked={selectedUsers.has(user._id)}
@@ -399,7 +399,7 @@ const AdminUserManagementPage = () => {
                     }
                     setSelectedUsers(newSet)
                   }}
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded border-gray-300 text-primary-600 cursor-pointer"
+                  className="w-2 h-2 appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded cursor-pointer checked:bg-primary-600 checked:border-primary-600"
                 />
               </div>
 

@@ -179,7 +179,7 @@ export const getMemberById = async (req, res) => {
  */
 export const createMember = async (req, res) => {
   try {
-    const { fullName, phoneNumber, email, country, city, status, category, notes } = req.body
+    const { fullName, phoneNumber, email, country, city, facebookUrl, status, category, notes } = req.body
 
     // Validate required fields
     if (!fullName || !phoneNumber || !country) {
@@ -205,6 +205,7 @@ export const createMember = async (req, res) => {
       email,
       country,
       city,
+      facebookUrl,
       status: status || 'active',
       category: category || 'Regular',
       notes,
@@ -232,7 +233,7 @@ export const createMember = async (req, res) => {
  * @access  Private (Only creator or admin)
  */
 export const updateMember = async (req, res) => {
-  try {
+  try {facebookUrl,
     const { fullName, phoneNumber, email, country, city, status, category, notes } = req.body
 
     let member = await Member.findById(req.params.id)
@@ -272,6 +273,7 @@ export const updateMember = async (req, res) => {
     member.phoneNumber = phoneNumber || member.phoneNumber
     member.email = email !== undefined ? email : member.email
     member.country = country || member.country
+    member.facebookUrl = facebookUrl !== undefined ? facebookUrl : member.facebookUrl
     member.city = city !== undefined ? city : member.city
     member.status = status || member.status
     member.category = category || member.category
