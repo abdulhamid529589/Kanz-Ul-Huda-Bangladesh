@@ -22,12 +22,21 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 600,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes('node_modules/react')) {
+        manualChunks(id) {
+          // Vendor libraries
+          if (id.includes('node_modules/react') && !id.includes('react-router')) {
+            return 'react'
+          }
+          if (id.includes('node_modules/react-dom')) {
             return 'react'
           }
           if (id.includes('node_modules/react-router-dom')) {
@@ -45,25 +54,8 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react') || id.includes('node_modules/react-icons')) {
             return 'icons'
           }
-          // Pages chunks - each major page gets its own chunk
-          if (
-            id.includes('pages/AdminDashboardPage') ||
-            id.includes('pages/AdminUserManagementPage') ||
-            id.includes('pages/AdminMemberManagementPage') ||
-            id.includes('pages/AdminSettingsPage') ||
-            id.includes('pages/AdminAnalyticsPage')
-          ) {
-            return 'admin-pages'
-          }
-          if (
-            id.includes('pages/Dashboard') ||
-            id.includes('pages/MembersPage') ||
-            id.includes('pages/SubmissionsPage')
-          ) {
-            return 'main-pages'
-          }
-          if (id.includes('pages/')) {
-            return 'other-pages'
+          if (id.includes('node_modules/react-hot-toast')) {
+            return 'toast'
           }
         },
       },
