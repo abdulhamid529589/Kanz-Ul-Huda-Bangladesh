@@ -86,7 +86,7 @@ const AppContent = () => {
 
   // Authenticated - show app with layout
   return (
-    <>
+    <SocketProvider>
       <OfflineIndicator hasUpdate={hasUpdate} onUpdate={updateServiceWorker} />
       <Layout>
         <Suspense fallback={<LoadingSpinner />}>
@@ -150,7 +150,7 @@ const AppContent = () => {
           </Routes>
         </Suspense>
       </Layout>
-    </>
+    </SocketProvider>
   )
 }
 
@@ -159,9 +159,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <SocketProvider>
-          <AppContent />
-        </SocketProvider>
+        <AppContent />
       </AuthProvider>
     </BrowserRouter>
   )
