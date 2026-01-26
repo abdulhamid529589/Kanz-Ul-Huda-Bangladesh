@@ -22,7 +22,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 1500,
     minify: 'terser',
     terserOptions: {
       compress: {
@@ -32,30 +32,44 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor libraries
-          if (id.includes('node_modules/react') && !id.includes('react-router')) {
-            return 'react'
+          // Vendor libraries first
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) {
+              return 'recharts'
+            }
+            if (id.includes('socket.io-client')) {
+              return 'socket'
+            }
+            if (id.includes('framer-motion')) {
+              return 'framer'
+            }
+            if (id.includes('lucide-react') || id.includes('react-icons')) {
+              return 'icons'
+            }
+            if (id.includes('react-hot-toast')) {
+              return 'toast'
+            }
+            if (id.includes('react')) {
+              return 'react-vendor'
+            }
           }
-          if (id.includes('node_modules/react-dom')) {
-            return 'react'
+          // Split pages into chunks
+          if (id.includes('pages/AdminDashboardPage') || id.includes('components/AdminDashboard')) {
+            return 'admin-main'
           }
-          if (id.includes('node_modules/react-router-dom')) {
-            return 'react-router'
+          if (
+            id.includes('pages/AdminUserManagementPage') ||
+            id.includes('pages/AdminMemberManagementPage') ||
+            id.includes('pages/AdminSettingsPage') ||
+            id.includes('pages/AdminAnalyticsPage')
+          ) {
+            return 'admin-pages'
           }
-          if (id.includes('node_modules/recharts')) {
-            return 'recharts'
+          if (id.includes('pages/Dashboard')) {
+            return 'user-dashboard'
           }
-          if (id.includes('node_modules/socket.io-client')) {
-            return 'socket'
-          }
-          if (id.includes('node_modules/framer-motion')) {
-            return 'framer'
-          }
-          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/react-icons')) {
-            return 'icons'
-          }
-          if (id.includes('node_modules/react-hot-toast')) {
-            return 'toast'
+          if (id.includes('pages/')) {
+            return 'other-pages'
           }
         },
       },
