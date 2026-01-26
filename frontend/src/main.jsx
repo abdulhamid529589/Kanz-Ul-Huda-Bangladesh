@@ -5,6 +5,7 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ThemeProvider } from './context/ThemeContext'
 import './index.css'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 // Register Service Worker for offline support
 if ('serviceWorker' in navigator) {
@@ -41,6 +42,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <ErrorBoundary>
         <App />
+        <SpeedInsights />
         <Toaster
           position="top-right"
           toastOptions={{
