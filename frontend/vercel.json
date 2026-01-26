@@ -4,21 +4,9 @@
   "env": {
     "VITE_API_URL": "@vite_api_url"
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/index\\.html$",
-      "headers": {
-        "Cache-Control": "public, max-age=3600"
-      }
-    },
-    {
-      "src": "^/(.*?)(\\.json|\\.txt|\\.js|\\.css|\\.svg|\\.png|\\.jpg|\\.jpeg|\\.gif|\\.webp)$",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/(.*)",
+      "source": "/:path((?!.*\\.).*)",
       "destination": "/index.html"
     }
   ]

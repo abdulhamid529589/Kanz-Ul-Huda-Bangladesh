@@ -22,11 +22,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          icons: ['lucide-react'],
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          icons: ['lucide-react', 'react-icons'],
+          charts: ['recharts'],
+          socket: ['socket.io-client'],
+          ui: ['framer-motion', 'react-hot-toast'],
         },
       },
     },
