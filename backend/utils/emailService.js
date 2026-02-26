@@ -8,14 +8,11 @@ let transporter
 
 // Initialize email service
 export const initializeEmailService = () => {
-  // Using Gmail or your email provider
-  // For Gmail: Enable "Less secure app access" or use App Password
-  // For other providers: Update credentials accordingly
-
   const emailUser = process.env.EMAIL_USER || 'abdulhamid529589@gmail.com'
   const emailPassword = process.env.EMAIL_PASSWORD || 'xuuu kvhx ztae icjx'
   const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com'
-  const emailPort = process.env.EMAIL_PORT || 587
+  // ✅ FIXED: Changed default port from 587 to 465
+  const emailPort = parseInt(process.env.EMAIL_PORT) || 465
 
   logger.info('Initializing email service', {
     host: emailHost,
@@ -32,28 +29,32 @@ export const initializeEmailService = () => {
       user: emailUser,
       pass: emailPassword,
     },
-    // Connection timeout settings for Render compatibility
-    connectionTimeout: 5000, // 5 seconds
-    socketTimeout: 5000, // 5 seconds
+    // ✅ FIXED: Increased timeout for Render's slower network
+    connectionTimeout: 10000, // 10 seconds (was 5)
+    socketTimeout: 10000, // 10 seconds (was 5)
+    greetingTimeout: 10000, // 10 seconds (new)
     // TLS settings for better compatibility
     tls: {
-      rejectUnauthorized: false, // Required for some hosting providers
+      rejectUnauthorized: false,
     },
   })
 
-  // Verify connection
-  transporter.verify((error, success) => {
-    if (error) {
-      logger.error('❌ Email service initialization FAILED', {
+  // ✅ FIXED: Made verification non-blocking and added better error handling
+  // Don't wait for verification - it will log when ready
+  transporter
+    .verify()
+    .then(() => {
+      logger.info('✅ Email service initialized successfully')
+      console.log('✅ Email Service Connected')
+    })
+    .catch((error) => {
+      logger.error('⚠️ Email service verification failed (but will retry on send)', {
         error: error.message,
         code: error.code,
       })
-      console.error('❌ Email Service Error:', error.message)
-    } else {
-      logger.info('✅ Email service initialized successfully')
-      console.log('✅ Email Service Connected')
-    }
-  })
+      console.error('⚠️ Email Service Warning:', error.message)
+      // Don't throw - let it fail gracefully and retry on actual send
+    })
 }
 
 /**
@@ -66,11 +67,13 @@ export const generateOTP = () => {
 /**
  * Send email with retry mechanism for timeout resilience
  */
-const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
+const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
   // Ensure transporter is initialized
   if (!transporter) {
     logger.error('⚠️ Transporter not initialized, attempting to reinitialize email service')
     initializeEmailService()
+    // Give it a moment to initialize
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
 
   if (!transporter) {
@@ -107,7 +110,7 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 2) => {
       // If it's the last attempt, don't retry
       if (attempt < maxRetries) {
         // Wait before retrying (exponential backoff)
-        const delayMs = 1000 * attempt
+        const delayMs = 2000 * attempt // 2s, 4s, 6s
         logger.info(`⏳ Retrying in ${delayMs}ms...`)
         await new Promise((resolve) => setTimeout(resolve, delayMs))
       }
@@ -129,7 +132,7 @@ export const sendOTPEmail = async (email, otp, fullName = 'User') => {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kanz ul Huda - Email Verification OTP',
       html: `
@@ -189,7 +192,7 @@ export const sendOTPEmail = async (email, otp, fullName = 'User') => {
 export const sendWelcomeEmail = async (email, fullName, username) => {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Welcome to Kanz ul Huda - Durood Collection System',
       html: `
@@ -224,7 +227,7 @@ export const sendWelcomeEmail = async (email, fullName, username) => {
       `,
     }
 
-    await transporter.sendMail(mailOptions)
+    await sendEmailWithRetry(mailOptions)
     logger.info('Welcome email sent successfully', { email })
   } catch (error) {
     logger.error('Failed to send welcome email', { email, error: error.message })
@@ -238,7 +241,7 @@ export const sendWelcomeEmail = async (email, fullName, username) => {
 export const sendPasswordResetEmail = async (email, resetLink, fullName = 'User') => {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kanz ul Huda - Password Reset Request',
       html: `
@@ -288,7 +291,7 @@ export const sendPasswordResetEmail = async (email, resetLink, fullName = 'User'
       `,
     }
 
-    await transporter.sendMail(mailOptions)
+    await sendEmailWithRetry(mailOptions)
     logger.info('Password reset email sent successfully', { email })
   } catch (error) {
     logger.error('Failed to send password reset email', { email, error: error.message })
@@ -307,7 +310,7 @@ export const sendRegistrationRequestConfirmationEmail = async (email, name) => {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kanz ul Huda - Registration Request Received',
       html: `
@@ -369,7 +372,7 @@ export const sendRegistrationApprovedEmail = async (email, name) => {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kanz ul Huda - Registration Approved! ✅',
       html: `
@@ -428,7 +431,7 @@ export const sendRegistrationRejectedEmail = async (email, name, reason) => {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Kanz ul Huda - Registration Request Update',
       html: `
@@ -527,14 +530,14 @@ export const sendAdminCreatedUserVerificationEmail = async (
   `
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: `"Kanz ul Huda" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: `${fullName}, please verify your email for Kanz-Ul-Huda`,
     html: htmlContent,
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions)
+    const info = await sendEmailWithRetry(mailOptions)
     logger.info('Admin-created user verification email sent', { email, messageId: info.messageId })
     return info
   } catch (error) {

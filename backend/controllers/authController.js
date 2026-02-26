@@ -726,12 +726,23 @@ export const loginResendOTP = asyncHandler(async (req, res) => {
  * @route   POST /api/auth/forgot-password
  * @access  Public
  */
+/**
+ * @desc    Request password reset - Step 1: Send reset link
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
 export const forgotPassword = asyncHandler(async (req, res) => {
+  console.log('🔍 === FORGOT PASSWORD DEBUG START ===')
+  console.log('Request body:', req.body)
+
   const { email } = req.body
 
   if (!email) {
+    console.log('❌ No email provided')
     throw new AppError('Email is required', 400)
   }
+
+  console.log('📧 Looking for user with email:', email.toLowerCase())
 
   // Check if user exists
   const user = await User.findOne({ email: email.toLowerCase() })
@@ -739,6 +750,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   if (!user) {
     // For security, we still return success even if user doesn't exist
     // This prevents email enumeration attacks
+    console.log('⚠️ User not found:', email.toLowerCase())
     logger.warn('Password reset requested for non-existent email', { email: email.toLowerCase() })
     sendSuccessResponse(
       res,
@@ -748,22 +760,64 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     return
   }
 
+  console.log('✅ User found:', user.email)
+  console.log('🔑 Generating reset token...')
+
   // Generate reset token
-  const resetToken = await PasswordReset.generateResetToken(email)
+  let resetToken
+  try {
+    resetToken = await PasswordReset.generateResetToken(email)
+    console.log('✅ Reset token generated successfully')
+  } catch (error) {
+    console.error('❌ Error generating reset token:', error.message)
+    throw new AppError('Failed to generate reset token. Please try again.', 500)
+  }
 
   // Create reset link
-  const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+  const resetLink = `${frontendUrl}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`
+
+  console.log('🔗 Reset link created:', resetLink)
+  console.log('📧 Environment check:')
+  console.log('  - FRONTEND_URL:', process.env.FRONTEND_URL)
+  console.log('  - EMAIL_HOST:', process.env.EMAIL_HOST)
+  console.log('  - EMAIL_PORT:', process.env.EMAIL_PORT)
+  console.log('  - EMAIL_USER:', process.env.EMAIL_USER)
+  console.log('  - EMAIL_PASSWORD exists:', !!process.env.EMAIL_PASSWORD)
 
   // Send reset email
+  console.log('📤 Attempting to send password reset email...')
   try {
     await sendPasswordResetEmail(email, resetLink, user.fullName)
+    console.log('✅ Password reset email sent successfully')
   } catch (error) {
+    console.error('❌ === EMAIL SENDING FAILED ===')
+    console.error('Error type:', error.constructor.name)
+    console.error('Error message:', error.message)
+    console.error('Error code:', error.code)
+    console.error('Error response:', error.response)
+    console.error('Full error:', error)
+    console.error('Error stack:', error.stack)
+
     // Delete the reset record if email sending fails
-    await PasswordReset.deleteOne({ email: email.toLowerCase() })
-    throw new AppError('Failed to send password reset email. Please try again.', 500)
+    try {
+      await PasswordReset.deleteOne({ email: email.toLowerCase() })
+      console.log('🗑️ Deleted password reset record after email failure')
+    } catch (deleteError) {
+      console.error('❌ Failed to delete reset record:', deleteError.message)
+    }
+
+    // Return detailed error in development, generic in production
+    const errorMessage =
+      process.env.NODE_ENV === 'production'
+        ? 'Failed to send password reset email. Please try again.'
+        : `Email error: ${error.message} (Code: ${error.code || 'UNKNOWN'})`
+
+    throw new AppError(errorMessage, 500)
   }
 
   logger.info('Password reset email sent', { email: user.email })
+  console.log('✅ === FORGOT PASSWORD COMPLETE ===')
 
   sendSuccessResponse(
     res,
